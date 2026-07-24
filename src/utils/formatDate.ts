@@ -1,21 +1,22 @@
-import { format, isValid, parseISO } from 'date-fns'
+export function formatDate(
+  date: string | Date,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const parsedDate =
+    typeof date === "string"
+      ? new Date(`${date}T00:00:00`)
+      : date;
 
-export function formatExpenseDate(date: string): string {
-  const parsedDate = parseISO(date)
-
-  if (!isValid(parsedDate)) {
-    return date
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Invalid Date";
   }
 
-  return format(parsedDate, 'dd MMM yyyy')
-}
-
-export function formatShortDate(date: string): string {
-  const parsedDate = parseISO(date)
-
-  if (!isValid(parsedDate)) {
-    return date
-  }
-
-  return format(parsedDate, 'dd MMM')
+  return new Intl.DateTimeFormat(
+    "en-IN",
+    options ?? {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  ).format(parsedDate);
 }
