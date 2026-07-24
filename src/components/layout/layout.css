@@ -213,3 +213,11 @@
     font-size: 0.72rem;
   }
 }
+.topbar__status--error {
+  color: var(--color-error);
+}
+
+.topbar__status--error .topbar__status-dot {
+  background: var(--color-error);
+  box-shadow: 0 0 0 4px var(--color-error-light);
+}

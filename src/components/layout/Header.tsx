@@ -1,8 +1,16 @@
 import { CalendarDays } from 'lucide-react'
 import { format } from 'date-fns'
+import { useExpenses } from '../../hooks/useExpenses'
 
 function Header() {
   const currentDate = format(new Date(), 'EEEE, dd MMMM yyyy')
+  const { isLoading, error } = useExpenses()
+
+  const connectionLabel = isLoading
+    ? 'Connecting'
+    : error
+      ? 'API unavailable'
+      : 'Connected'
 
   return (
     <header className="topbar">
@@ -11,9 +19,13 @@ function Header() {
         <span>{currentDate}</span>
       </div>
 
-      <div className="topbar__status">
+      <div
+        className={`topbar__status ${
+          error ? 'topbar__status--error' : ''
+        }`}
+      >
         <span className="topbar__status-dot" />
-        <span>Connected</span>
+        <span>{connectionLabel}</span>
       </div>
     </header>
   )
