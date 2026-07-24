@@ -35,12 +35,12 @@ export interface Expense {
 }
 
 export interface ExpenseFormData {
-  title: string
-  amount: string
-  category: ExpenseCategory
-  date: string
-  payment_method: PaymentMethod
-  notes: string
+  title: string;
+  amount: string | number;
+  category: string;
+  date: string;
+  payment_method: string;
+  notes: string;
 }
 
 export interface ExpenseApiResponse {

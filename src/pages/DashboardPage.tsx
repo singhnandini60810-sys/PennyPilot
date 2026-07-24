@@ -19,88 +19,128 @@ import {
 
 import SummaryCard from "../components/dashboard/SummaryCard";
 import { useExpenses } from "../hooks/useExpenses";
+import type { Expense } from "../types/expense";
 import { formatCurrency } from "../utils/formatCurrency";
 import { formatDate } from "../utils/formatDate";
 
 import "../components/dashboard/dashboard.css";
 
+interface ChartDataItem {
+  date: string;
+  label: string;
+  amount: number;
+}
+
 function getGreeting(): string {
   const hour = new Date().getHours();
 
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 17) {
+    return "Good afternoon";
+  }
+
   return "Good evening";
 }
 
+function getExpenseTimestamp(expense: Expense): number {
+  const expenseDate = new Date(`${expense.date}T00:00:00`).getTime();
+  const createdDate = expense.created_at
+    ? new Date(expense.created_at).getTime()
+    : 0;
+
+  return expenseDate + createdDate;
+}
+
 export default function DashboardPage() {
- const {
-  expenses,
-  isLoading: loading,
-  error,
-  refreshExpenses,
-} = useExpenses();
+  const { expenses, loading, error, refreshExpenses } = useExpenses();
+
+  const typedExpenses: Expense[] = expenses;
 
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  const totalExpense = expenses.reduce(
-    (total, expense) => total + Number(expense.amount),
+  const totalExpense = typedExpenses.reduce(
+    (total: number, expense: Expense): number =>
+      total + Number(expense.amount),
     0,
   );
 
-  const thisMonthExpenses = expenses.filter((expense) => {
-    const expenseDate = new Date(`${expense.date}T00:00:00`);
+  const thisMonthExpenses: Expense[] = typedExpenses.filter(
+    (expense: Expense): boolean => {
+      const expenseDate = new Date(`${expense.date}T00:00:00`);
 
-    return (
-      expenseDate.getMonth() === currentMonth &&
-      expenseDate.getFullYear() === currentYear
-    );
-  });
+      return (
+        expenseDate.getMonth() === currentMonth &&
+        expenseDate.getFullYear() === currentYear
+      );
+    },
+  );
 
   const thisMonthTotal = thisMonthExpenses.reduce(
-    (total, expense) => total + Number(expense.amount),
+    (total: number, expense: Expense): number =>
+      total + Number(expense.amount),
     0,
   );
 
   const largestExpense =
-    expenses.length > 0
-      ? Math.max(...expenses.map((expense) => Number(expense.amount)))
+    typedExpenses.length > 0
+      ? Math.max(
+          ...typedExpenses.map((expense: Expense): number =>
+            Number(expense.amount),
+          ),
+        )
       : 0;
 
-  const recentExpenses = [...expenses]
-    .sort((firstExpense, secondExpense) => {
-      const firstDate = new Date(firstExpense.date).getTime();
-      const secondDate = new Date(secondExpense.date).getTime();
-
-      return secondDate - firstDate;
-    })
+  const recentExpenses: Expense[] = [...typedExpenses]
+    .sort(
+      (firstExpense: Expense, secondExpense: Expense): number =>
+        getExpenseTimestamp(secondExpense) -
+        getExpenseTimestamp(firstExpense),
+    )
     .slice(0, 5);
 
-  const dailyTotals = expenses.reduce<Record<string, number>>(
-    (totals, expense) => {
+  const dailyTotals = typedExpenses.reduce<Record<string, number>>(
+    (
+      totals: Record<string, number>,
+      expense: Expense,
+    ): Record<string, number> => {
+      const currentAmount = totals[expense.date] ?? 0;
+
       totals[expense.date] =
-        (totals[expense.date] ?? 0) + Number(expense.amount);
+        currentAmount + Number(expense.amount);
 
       return totals;
     },
     {},
   );
 
-  const chartData = Object.entries(dailyTotals)
+  const chartData: ChartDataItem[] = Object.entries(dailyTotals)
     .sort(
-      ([firstDate], [secondDate]) =>
-        new Date(firstDate).getTime() - new Date(secondDate).getTime(),
+      (
+        [firstDate]: [string, number],
+        [secondDate]: [string, number],
+      ): number =>
+        new Date(`${firstDate}T00:00:00`).getTime() -
+        new Date(`${secondDate}T00:00:00`).getTime(),
     )
     .slice(-10)
-    .map(([date, amount]) => ({
-      date,
-      label: new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+    .map(
+      ([date, amount]: [string, number]): ChartDataItem => ({
+        date,
+        label: new Date(`${date}T00:00:00`).toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+          },
+        ),
+        amount,
       }),
-      amount,
-    }));
+    );
 
   if (loading) {
     return (
@@ -124,7 +164,10 @@ export default function DashboardPage() {
             <p>{error}</p>
           </div>
 
-          <button type="button" onClick={() => void refreshExpenses()}>
+          <button
+            type="button"
+            onClick={() => void refreshExpenses()}
+          >
             Try again
           </button>
         </div>
@@ -137,12 +180,17 @@ export default function DashboardPage() {
       <div className="dashboard-page__heading">
         <div>
           <h1>{getGreeting()}, Nandini 👋</h1>
+
           <p>
-            Here is a clear overview of your spending and latest transactions.
+            Here is a clear overview of your spending and latest
+            transactions.
           </p>
         </div>
 
-        <Link className="dashboard-add-button" to="/expenses">
+        <Link
+          className="dashboard-add-button"
+          to="/expenses"
+        >
           <ReceiptText size={18} />
           Manage expenses
         </Link>
@@ -165,7 +213,7 @@ export default function DashboardPage() {
 
         <SummaryCard
           title="Transactions"
-          value={expenses.length.toString()}
+          value={typedExpenses.length.toString()}
           icon={<ReceiptText size={24} />}
           accent="blue"
         />
@@ -189,7 +237,10 @@ export default function DashboardPage() {
 
           {chartData.length > 0 ? (
             <div className="dashboard-chart">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
                 <LineChart
                   data={chartData}
                   margin={{
@@ -223,7 +274,7 @@ export default function DashboardPage() {
                       fontSize: 12,
                       fill: "#6f7785",
                     }}
-                    tickFormatter={(value: number) =>
+                    tickFormatter={(value: number): string =>
                       new Intl.NumberFormat("en-US", {
                         notation: "compact",
                         maximumFractionDigits: 1,
@@ -231,21 +282,17 @@ export default function DashboardPage() {
                     }
                   />
 
-                  <Tooltip
-                    cursor={{
-                      stroke: "rgba(46, 67, 101, 0.18)",
-                      strokeWidth: 1,
-                    }}
-                    formatter={(value) => [
-                      formatCurrency(Number(value)),
-                      "Expense",
-                    ]}
-                    labelFormatter={(_, payload) => {
-                      const date = payload?.[0]?.payload?.date;
-
-                      return date ? formatDate(date) : "";
-                    }}
-                  />
+                 <Tooltip
+  cursor={{
+    stroke: "rgba(46, 67, 101, 0.18)",
+    strokeWidth: 1,
+  }}
+  formatter={(value) => [
+    formatCurrency(Number(value ?? 0)),
+    "Expense",
+  ]}
+  labelFormatter={(label) => String(label ?? "")}
+/>
 
                   <Line
                     type="monotone"
@@ -274,7 +321,11 @@ export default function DashboardPage() {
                 </div>
 
                 <h3>No spending trend yet</h3>
-                <p>Add your first expense to begin tracking your spending.</p>
+
+                <p>
+                  Add your first expense to begin tracking your
+                  spending.
+                </p>
               </div>
             </div>
           )}
@@ -287,8 +338,11 @@ export default function DashboardPage() {
               <p>Your latest five transactions</p>
             </div>
 
-            {expenses.length > 0 && (
-              <Link className="dashboard-panel__link" to="/expenses">
+            {typedExpenses.length > 0 && (
+              <Link
+                className="dashboard-panel__link"
+                to="/expenses"
+              >
                 View all
               </Link>
             )}
@@ -296,8 +350,11 @@ export default function DashboardPage() {
 
           {recentExpenses.length > 0 ? (
             <div className="recent-expenses">
-              {recentExpenses.map((expense) => (
-                <div className="recent-expense" key={expense.expense_id}>
+              {recentExpenses.map((expense: Expense) => (
+                <div
+                  className="recent-expense"
+                  key={expense.expense_id}
+                >
                   <div className="recent-expense__icon">
                     <ReceiptText size={19} />
                   </div>
@@ -306,12 +363,16 @@ export default function DashboardPage() {
                     <strong>{expense.title}</strong>
 
                     <span>
-                      {expense.category} · {formatDate(expense.date)}
+                      {expense.category} ·{" "}
+                      {formatDate(expense.date)}
                     </span>
                   </div>
 
                   <div className="recent-expense__amount">
-                    <strong>{formatCurrency(Number(expense.amount))}</strong>
+                    <strong>
+                      {formatCurrency(Number(expense.amount))}
+                    </strong>
+
                     <ArrowUpRight size={15} />
                   </div>
                 </div>
@@ -325,7 +386,10 @@ export default function DashboardPage() {
                 </div>
 
                 <h3>No expenses yet</h3>
-                <p>Your recently added expenses will appear here.</p>
+
+                <p>
+                  Your recently added expenses will appear here.
+                </p>
               </div>
             </div>
           )}

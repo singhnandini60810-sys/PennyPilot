@@ -1,195 +1,182 @@
 import {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
-} from 'react'
+} from "react";
+
 import {
-  createExpense as createExpenseRequest,
-  deleteExpense as deleteExpenseRequest,
+  createExpense,
+  deleteExpense,
   getExpenses,
-  updateExpense as updateExpenseRequest,
-} from '../services/expenseService'
+  updateExpense,
+} from "../services/expenseService";
 import type {
   Expense,
   ExpenseFormData,
-} from '../types/expense'
+} from "../types/expense";
 
 interface ExpenseContextValue {
-  expenses: Expense[]
-  isLoading: boolean
-  isSaving: boolean
-  error: string | null
-  refreshExpenses: () => Promise<void>
-  addExpense: (formData: ExpenseFormData) => Promise<Expense>
+  expenses: Expense[];
+  loading: boolean;
+  saving: boolean;
+  error: string | null;
+  refreshExpenses: () => Promise<void>;
+  addExpense: (expenseData: ExpenseFormData) => Promise<Expense>;
   editExpense: (
     expenseId: string,
-    formData: ExpenseFormData,
-  ) => Promise<Expense>
-  removeExpense: (expenseId: string) => Promise<void>
-  clearError: () => void
+    expenseData: ExpenseFormData,
+  ) => Promise<Expense>;
+  removeExpense: (expenseId: string) => Promise<void>;
+  clearError: () => void;
 }
 
 interface ExpenseProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-const ExpenseContext = createContext<ExpenseContextValue | undefined>(
-  undefined,
-)
+export const ExpenseContext =
+  createContext<ExpenseContextValue | undefined>(undefined);
 
-export function ExpenseProvider({ children }: ExpenseProviderProps) {
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function ExpenseProvider({
+  children,
+}: ExpenseProviderProps) {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshExpenses = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+  const clearError = useCallback((): void => {
+    setError(null);
+  }, []);
 
+  const refreshExpenses = useCallback(async (): Promise<void> => {
     try {
-      const expenseData = await getExpenses()
+      setLoading(true);
+      setError(null);
 
-      const sortedExpenses = [...expenseData].sort(
-        (first, second) =>
-          new Date(second.date).getTime() -
-          new Date(first.date).getTime(),
-      )
+      const fetchedExpenses = await getExpenses();
 
-      setExpenses(sortedExpenses)
-    } catch (requestError) {
+      setExpenses(fetchedExpenses);
+    } catch (requestError: unknown) {
       const message =
         requestError instanceof Error
           ? requestError.message
-          : 'Unable to load expenses.'
+          : "Unable to load expenses.";
 
-      setError(message)
+      setError(message);
     } finally {
-      setIsLoading(false)
+      setLoading(false);
     }
-  }, [])
-
-  useEffect(() => {
-    void refreshExpenses()
-  }, [refreshExpenses])
+  }, []);
 
   const addExpense = useCallback(
-    async (formData: ExpenseFormData): Promise<Expense> => {
-      setIsSaving(true)
-      setError(null)
-
+    async (expenseData: ExpenseFormData): Promise<Expense> => {
       try {
-        const createdExpense = await createExpenseRequest(formData)
+        setSaving(true);
+        setError(null);
 
-        setExpenses((currentExpenses) =>
-          [createdExpense, ...currentExpenses].sort(
-            (first, second) =>
-              new Date(second.date).getTime() -
-              new Date(first.date).getTime(),
-          ),
-        )
+        const newExpense = await createExpense(expenseData);
 
-        return createdExpense
-      } catch (requestError) {
+        setExpenses((currentExpenses: Expense[]) => [
+          newExpense,
+          ...currentExpenses,
+        ]);
+
+        return newExpense;
+      } catch (requestError: unknown) {
         const message =
           requestError instanceof Error
             ? requestError.message
-            : 'Unable to add the expense.'
+            : "Unable to add the expense.";
 
-        setError(message)
-        throw new Error(message)
+        setError(message);
+        throw requestError;
       } finally {
-        setIsSaving(false)
+        setSaving(false);
       }
     },
     [],
-  )
+  );
 
   const editExpense = useCallback(
     async (
       expenseId: string,
-      formData: ExpenseFormData,
+      expenseData: ExpenseFormData,
     ): Promise<Expense> => {
-      setIsSaving(true)
-      setError(null)
-
       try {
-        const updatedExpense = await updateExpenseRequest(
+        setSaving(true);
+        setError(null);
+
+        const updatedExpense = await updateExpense(
           expenseId,
-          formData,
-        )
+          expenseData,
+        );
 
-        setExpenses((currentExpenses) =>
-          currentExpenses
-            .map((expense) =>
-              expense.expense_id === expenseId
-                ? updatedExpense
-                : expense,
-            )
-            .sort(
-              (first, second) =>
-                new Date(second.date).getTime() -
-                new Date(first.date).getTime(),
-            ),
-        )
+        setExpenses((currentExpenses: Expense[]) =>
+          currentExpenses.map((expense: Expense) =>
+            expense.expense_id === expenseId
+              ? updatedExpense
+              : expense,
+          ),
+        );
 
-        return updatedExpense
-      } catch (requestError) {
+        return updatedExpense;
+      } catch (requestError: unknown) {
         const message =
           requestError instanceof Error
             ? requestError.message
-            : 'Unable to update the expense.'
+            : "Unable to update the expense.";
 
-        setError(message)
-        throw new Error(message)
+        setError(message);
+        throw requestError;
       } finally {
-        setIsSaving(false)
+        setSaving(false);
       }
     },
     [],
-  )
+  );
 
   const removeExpense = useCallback(
     async (expenseId: string): Promise<void> => {
-      setIsSaving(true)
-      setError(null)
-
       try {
-        await deleteExpenseRequest(expenseId)
+        setSaving(true);
+        setError(null);
 
-        setExpenses((currentExpenses) =>
+        await deleteExpense(expenseId);
+
+        setExpenses((currentExpenses: Expense[]) =>
           currentExpenses.filter(
-            (expense) => expense.expense_id !== expenseId,
+            (expense: Expense) =>
+              expense.expense_id !== expenseId,
           ),
-        )
-      } catch (requestError) {
+        );
+      } catch (requestError: unknown) {
         const message =
           requestError instanceof Error
             ? requestError.message
-            : 'Unable to delete the expense.'
+            : "Unable to delete the expense.";
 
-        setError(message)
-        throw new Error(message)
+        setError(message);
+        throw requestError;
       } finally {
-        setIsSaving(false)
+        setSaving(false);
       }
     },
     [],
-  )
+  );
 
-  const clearError = useCallback(() => {
-    setError(null)
-  }, [])
+  useEffect(() => {
+    void refreshExpenses();
+  }, [refreshExpenses]);
 
-  const contextValue = useMemo(
+  const contextValue = useMemo<ExpenseContextValue>(
     () => ({
       expenses,
-      isLoading,
-      isSaving,
+      loading,
+      saving,
       error,
       refreshExpenses,
       addExpense,
@@ -199,8 +186,8 @@ export function ExpenseProvider({ children }: ExpenseProviderProps) {
     }),
     [
       expenses,
-      isLoading,
-      isSaving,
+      loading,
+      saving,
       error,
       refreshExpenses,
       addExpense,
@@ -208,23 +195,11 @@ export function ExpenseProvider({ children }: ExpenseProviderProps) {
       removeExpense,
       clearError,
     ],
-  )
+  );
 
   return (
     <ExpenseContext.Provider value={contextValue}>
       {children}
     </ExpenseContext.Provider>
-  )
-}
-
-export function useExpenseContext(): ExpenseContextValue {
-  const context = useContext(ExpenseContext)
-
-  if (!context) {
-    throw new Error(
-      'useExpenseContext must be used inside ExpenseProvider.',
-    )
-  }
-
-  return context
+  );
 }

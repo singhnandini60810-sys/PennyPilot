@@ -1,17 +1,13 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import { ExpenseProvider } from './context/ExpenseContext'
-import './index.css'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
-const rootElement = document.getElementById('root')
+import App from "./App";
+import { ExpenseProvider } from "./context/ExpenseContext";
 
-if (!rootElement) {
-  throw new Error('Root element was not found')
-}
+import "./index.css";
 
-createRoot(rootElement).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ExpenseProvider>
@@ -19,4 +15,4 @@ createRoot(rootElement).render(
       </ExpenseProvider>
     </BrowserRouter>
   </StrictMode>,
-)
+);
