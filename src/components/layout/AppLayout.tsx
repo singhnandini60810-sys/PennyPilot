@@ -1,24 +1,25 @@
-import { Outlet } from 'react-router-dom'
-import Header from './Header'
-import MobileNavigation from './MobileNavigation'
-import Sidebar from './Sidebar'
+import { Outlet } from "react-router-dom";
 
-function AppLayout() {
+import Header from "./Header";
+import MobileNavigation from "./MobileNavigation";
+import Sidebar from "./Sidebar";
+
+import "./layout.css";
+
+export default function AppLayout() {
   return (
-    <div className="app-layout">
+    <div className="app-shell">
       <Sidebar />
 
-      <div className="app-layout__main">
+      <div className="app-shell__main">
         <Header />
 
-        <div className="app-layout__content">
+        <main className="app-shell__content">
           <Outlet />
-        </div>
+        </main>
       </div>
 
       <MobileNavigation />
     </div>
-  )
+  );
 }
-
-export default AppLayout
