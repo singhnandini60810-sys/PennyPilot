@@ -5,6 +5,7 @@ import type {
 } from '../types/expense'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
+console.log('PennyPilot API base URL:', API_BASE_URL)
 
 function getApiUrl(path = ''): string {
   if (!API_BASE_URL) {
