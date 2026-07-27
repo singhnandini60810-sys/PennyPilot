@@ -1,12 +1,25 @@
 import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
   ArrowUpRight,
   CalendarDays,
   CircleDollarSign,
+  CreditCard,
+  PiggyBank,
   ReceiptText,
+  RefreshCw,
+  Tag,
+  Target,
   TrendingUp,
   WalletCards,
 } from "lucide-react";
+
 import { Link } from "react-router-dom";
+
 import {
   CartesianGrid,
   Line,
@@ -29,7 +42,27 @@ interface ChartDataItem {
   date: string;
   label: string;
   amount: number;
+  transactions: number;
 }
+
+interface SavingGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  savedAmount: number;
+  targetDate: string;
+  notes: string;
+  createdAt: string;
+}
+
+interface NamedTotal {
+  name: string;
+  amount: number;
+  transactions: number;
+}
+
+const SAVINGS_STORAGE_KEY =
+  "pennypilot-savings-goals";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -45,8 +78,20 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function getExpenseTimestamp(expense: Expense): number {
-  const expenseDate = new Date(`${expense.date}T00:00:00`).getTime();
+function getValidDate(date: string): Date | null {
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  return Number.isNaN(parsedDate.getTime())
+    ? null
+    : parsedDate;
+}
+
+function getExpenseTimestamp(
+  expense: Expense,
+): number {
+  const expenseDate =
+    getValidDate(expense.date)?.getTime() ?? 0;
+
   const createdDate = expense.created_at
     ? new Date(expense.created_at).getTime()
     : 0;
@@ -54,100 +99,369 @@ function getExpenseTimestamp(expense: Expense): number {
   return expenseDate + createdDate;
 }
 
-export default function DashboardPage() {
-  const { expenses, loading, error, refreshExpenses } = useExpenses();
+function loadSavingsGoals(): SavingGoal[] {
+  try {
+    const savedGoals = localStorage.getItem(
+      SAVINGS_STORAGE_KEY,
+    );
 
-  const typedExpenses: Expense[] = expenses;
+    if (!savedGoals) {
+      return [];
+    }
+
+    const parsedGoals = JSON.parse(savedGoals);
+
+    if (!Array.isArray(parsedGoals)) {
+      return [];
+    }
+
+    return parsedGoals.filter(
+      (goal): goal is SavingGoal =>
+        typeof goal?.id === "string" &&
+        typeof goal?.title === "string" &&
+        typeof goal?.targetAmount === "number" &&
+        typeof goal?.savedAmount === "number",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function getHighestNamedTotal(
+  totals: Record<string, NamedTotal>,
+): NamedTotal | null {
+  const values = Object.values(totals);
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  return values.reduce((highest, current) =>
+    current.amount > highest.amount
+      ? current
+      : highest,
+  );
+}
+
+function getMostUsedItem(
+  totals: Record<string, NamedTotal>,
+): NamedTotal | null {
+  const values = Object.values(totals);
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  return values.reduce((highest, current) => {
+    if (
+      current.transactions >
+      highest.transactions
+    ) {
+      return current;
+    }
+
+    if (
+      current.transactions ===
+        highest.transactions &&
+      current.amount > highest.amount
+    ) {
+      return current;
+    }
+
+    return highest;
+  });
+}
+
+export default function DashboardPage() {
+  const {
+    expenses,
+    loading,
+    error,
+    refreshExpenses,
+  } = useExpenses();
+
+  const [savingsGoals, setSavingsGoals] =
+    useState<SavingGoal[]>(loadSavingsGoals);
+
+  useEffect(() => {
+    function refreshSavingsData() {
+      setSavingsGoals(loadSavingsGoals());
+    }
+
+    refreshSavingsData();
+
+    window.addEventListener(
+      "focus",
+      refreshSavingsData,
+    );
+
+    window.addEventListener(
+      "storage",
+      refreshSavingsData,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "focus",
+        refreshSavingsData,
+      );
+
+      window.removeEventListener(
+        "storage",
+        refreshSavingsData,
+      );
+    };
+  }, []);
 
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  const totalExpense = typedExpenses.reduce(
-    (total: number, expense: Expense): number =>
-      total + Number(expense.amount),
-    0,
+  const totalExpense = useMemo(
+    () =>
+      expenses.reduce(
+        (total, expense) =>
+          total + Number(expense.amount),
+        0,
+      ),
+    [expenses],
   );
 
-  const thisMonthExpenses: Expense[] = typedExpenses.filter(
-    (expense: Expense): boolean => {
-      const expenseDate = new Date(`${expense.date}T00:00:00`);
+  const thisMonthExpenses = useMemo(
+    () =>
+      expenses.filter((expense) => {
+        const expenseDate =
+          getValidDate(expense.date);
 
-      return (
-        expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear
+        return (
+          expenseDate?.getMonth() ===
+            currentMonth &&
+          expenseDate?.getFullYear() ===
+            currentYear
+        );
+      }),
+    [
+      expenses,
+      currentMonth,
+      currentYear,
+    ],
+  );
+
+  const thisMonthTotal = useMemo(
+    () =>
+      thisMonthExpenses.reduce(
+        (total, expense) =>
+          total + Number(expense.amount),
+        0,
+      ),
+    [thisMonthExpenses],
+  );
+
+  const largestExpense = useMemo<Expense | null>(
+    () => {
+      if (expenses.length === 0) {
+        return null;
+      }
+
+      return expenses.reduce(
+        (largest, expense) =>
+          Number(expense.amount) >
+          Number(largest.amount)
+            ? expense
+            : largest,
       );
     },
+    [expenses],
   );
 
-  const thisMonthTotal = thisMonthExpenses.reduce(
-    (total: number, expense: Expense): number =>
-      total + Number(expense.amount),
+  const recentExpenses = useMemo(
+    () =>
+      [...expenses]
+        .sort(
+          (firstExpense, secondExpense) =>
+            getExpenseTimestamp(
+              secondExpense,
+            ) -
+            getExpenseTimestamp(
+              firstExpense,
+            ),
+        )
+        .slice(0, 6),
+    [expenses],
+  );
+
+  const categoryTotals = useMemo(() => {
+    return expenses.reduce<
+      Record<string, NamedTotal>
+    >((totals, expense) => {
+      const category =
+        expense.category || "Other";
+
+      if (!totals[category]) {
+        totals[category] = {
+          name: category,
+          amount: 0,
+          transactions: 0,
+        };
+      }
+
+      totals[category].amount +=
+        Number(expense.amount);
+
+      totals[category].transactions += 1;
+
+      return totals;
+    }, {});
+  }, [expenses]);
+
+  const paymentMethodTotals = useMemo(() => {
+    return expenses.reduce<
+      Record<string, NamedTotal>
+    >((totals, expense) => {
+      const paymentMethod =
+        expense.payment_method || "Other";
+
+      if (!totals[paymentMethod]) {
+        totals[paymentMethod] = {
+          name: paymentMethod,
+          amount: 0,
+          transactions: 0,
+        };
+      }
+
+      totals[paymentMethod].amount +=
+        Number(expense.amount);
+
+      totals[paymentMethod].transactions += 1;
+
+      return totals;
+    }, {});
+  }, [expenses]);
+
+  const highestCategory =
+    getHighestNamedTotal(categoryTotals);
+
+  const mostUsedPaymentMethod =
+    getMostUsedItem(paymentMethodTotals);
+
+  const thisMonthUniqueDays = useMemo(() => {
+    return new Set(
+      thisMonthExpenses.map(
+        (expense) => expense.date,
+      ),
+    ).size;
+  }, [thisMonthExpenses]);
+
+  const averageDailyExpense =
+    thisMonthUniqueDays > 0
+      ? thisMonthTotal / thisMonthUniqueDays
+      : 0;
+
+  const chartData = useMemo<ChartDataItem[]>(() => {
+    const dailyTotals = expenses.reduce<
+      Record<
+        string,
+        {
+          amount: number;
+          transactions: number;
+        }
+      >
+    >((totals, expense) => {
+      if (!totals[expense.date]) {
+        totals[expense.date] = {
+          amount: 0,
+          transactions: 0,
+        };
+      }
+
+      totals[expense.date].amount +=
+        Number(expense.amount);
+
+      totals[expense.date].transactions += 1;
+
+      return totals;
+    }, {});
+
+    return Object.entries(dailyTotals)
+      .sort(
+        (
+          [firstDate],
+          [secondDate],
+        ) =>
+          new Date(
+            `${firstDate}T00:00:00`,
+          ).getTime() -
+          new Date(
+            `${secondDate}T00:00:00`,
+          ).getTime(),
+      )
+      .slice(-12)
+      .map(
+        ([
+          date,
+          information,
+        ]): ChartDataItem => ({
+          date,
+          label: new Date(
+            `${date}T00:00:00`,
+          ).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          amount: information.amount,
+          transactions:
+            information.transactions,
+        }),
+      );
+  }, [expenses]);
+
+  const totalSavingsTarget = useMemo(
+    () =>
+      savingsGoals.reduce(
+        (total, goal) =>
+          total + goal.targetAmount,
+        0,
+      ),
+    [savingsGoals],
+  );
+
+  const totalSaved = useMemo(
+    () =>
+      savingsGoals.reduce(
+        (total, goal) =>
+          total + goal.savedAmount,
+        0,
+      ),
+    [savingsGoals],
+  );
+
+  const savingsRemaining = Math.max(
+    totalSavingsTarget - totalSaved,
     0,
   );
 
-  const largestExpense =
-    typedExpenses.length > 0
-      ? Math.max(
-          ...typedExpenses.map((expense: Expense): number =>
-            Number(expense.amount),
-          ),
+  const savingsProgress =
+    totalSavingsTarget > 0
+      ? Math.min(
+          (totalSaved / totalSavingsTarget) *
+            100,
+          100,
         )
       : 0;
 
-  const recentExpenses: Expense[] = [...typedExpenses]
-    .sort(
-      (firstExpense: Expense, secondExpense: Expense): number =>
-        getExpenseTimestamp(secondExpense) -
-        getExpenseTimestamp(firstExpense),
-    )
-    .slice(0, 5);
-
-  const dailyTotals = typedExpenses.reduce<Record<string, number>>(
-    (
-      totals: Record<string, number>,
-      expense: Expense,
-    ): Record<string, number> => {
-      const currentAmount = totals[expense.date] ?? 0;
-
-      totals[expense.date] =
-        currentAmount + Number(expense.amount);
-
-      return totals;
-    },
-    {},
-  );
-
-  const chartData: ChartDataItem[] = Object.entries(dailyTotals)
-    .sort(
-      (
-        [firstDate]: [string, number],
-        [secondDate]: [string, number],
-      ): number =>
-        new Date(`${firstDate}T00:00:00`).getTime() -
-        new Date(`${secondDate}T00:00:00`).getTime(),
-    )
-    .slice(-10)
-    .map(
-      ([date, amount]: [string, number]): ChartDataItem => ({
-        date,
-        label: new Date(`${date}T00:00:00`).toLocaleDateString(
-          "en-US",
-          {
-            month: "short",
-            day: "numeric",
-          },
-        ),
-        amount,
-      }),
-    );
+  const completedSavingsGoals =
+    savingsGoals.filter(
+      (goal) =>
+        goal.savedAmount >= goal.targetAmount,
+    ).length;
 
   if (loading) {
     return (
       <section className="dashboard-page">
         <div className="dashboard-loading">
           <div className="dashboard-loader" />
-          <p>Loading your expenses...</p>
+
+          <p>Loading your dashboard...</p>
         </div>
       </section>
     );
@@ -166,8 +480,11 @@ export default function DashboardPage() {
 
           <button
             type="button"
-            onClick={() => void refreshExpenses()}
+            onClick={() =>
+              void refreshExpenses()
+            }
           >
+            <RefreshCw size={17} />
             Try again
           </button>
         </div>
@@ -177,13 +494,19 @@ export default function DashboardPage() {
 
   return (
     <section className="dashboard-page">
-      <div className="dashboard-page__heading">
+      <header className="dashboard-page__heading">
         <div>
-          <h1>{getGreeting()}, Nandini 👋</h1>
+          <span className="dashboard-page__eyebrow">
+            Financial overview
+          </span>
+
+          <h1>
+            {getGreeting()}, Nandini 👋
+          </h1>
 
           <p>
-            Here is a clear overview of your spending and latest
-            transactions.
+            Review your spending, savings and latest
+            financial activity in one place.
           </p>
         </div>
 
@@ -194,11 +517,11 @@ export default function DashboardPage() {
           <ReceiptText size={18} />
           Manage expenses
         </Link>
-      </div>
+      </header>
 
       <div className="dashboard-summary-grid">
         <SummaryCard
-          title="Total Expense"
+          title="Total Spending"
           value={formatCurrency(totalExpense)}
           icon={<WalletCards size={24} />}
           accent="blue"
@@ -213,26 +536,151 @@ export default function DashboardPage() {
 
         <SummaryCard
           title="Transactions"
-          value={typedExpenses.length.toString()}
+          value={expenses.length.toString()}
           icon={<ReceiptText size={24} />}
           accent="blue"
         />
 
         <SummaryCard
           title="Largest Expense"
-          value={formatCurrency(largestExpense)}
+          value={formatCurrency(
+            Number(largestExpense?.amount ?? 0),
+          )}
           icon={<TrendingUp size={24} />}
           accent="gold"
         />
       </div>
 
+      <section className="dashboard-insights">
+        <div className="dashboard-section-heading">
+          <div>
+            <h2>Quick insights</h2>
+
+            <p>
+              Useful patterns calculated from your
+              recorded expenses.
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-insights-grid">
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-card__icon">
+              <Tag size={20} />
+            </div>
+
+            <div>
+              <span>Largest category</span>
+
+              <strong>
+                {highestCategory?.name ??
+                  "No data"}
+              </strong>
+
+              <small>
+                {highestCategory
+                  ? formatCurrency(
+                      highestCategory.amount,
+                    )
+                  : "Add expenses to calculate"}
+              </small>
+            </div>
+          </article>
+
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-card__icon">
+              <CreditCard size={20} />
+            </div>
+
+            <div>
+              <span>Most-used payment</span>
+
+              <strong>
+                {mostUsedPaymentMethod?.name ??
+                  "No data"}
+              </strong>
+
+              <small>
+                {mostUsedPaymentMethod
+                  ? `${mostUsedPaymentMethod.transactions} ${
+                      mostUsedPaymentMethod.transactions ===
+                      1
+                        ? "transaction"
+                        : "transactions"
+                    }`
+                  : "No payment data"}
+              </small>
+            </div>
+          </article>
+
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-card__icon">
+              <CalendarDays size={20} />
+            </div>
+
+            <div>
+              <span>Average daily spend</span>
+
+              <strong>
+                {formatCurrency(
+                  averageDailyExpense,
+                )}
+              </strong>
+
+              <small>
+                Based on active spending days this
+                month
+              </small>
+            </div>
+          </article>
+
+          <article className="dashboard-insight-card">
+            <div className="dashboard-insight-card__icon">
+              <TrendingUp size={20} />
+            </div>
+
+            <div>
+              <span>Largest transaction</span>
+
+              <strong>
+                {largestExpense?.title ??
+                  "No data"}
+              </strong>
+
+              <small>
+                {largestExpense
+                  ? `${largestExpense.category} · ${formatCurrency(
+                      Number(
+                        largestExpense.amount,
+                      ),
+                    )}`
+                  : "No transactions available"}
+              </small>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <div className="dashboard-content-grid">
         <article className="dashboard-panel">
           <div className="dashboard-panel__header">
             <div>
-              <h2>Expense trend</h2>
-              <p>Your spending across the latest recorded dates</p>
+              <h2>Spending trend</h2>
+
+              <p>
+                Total spending across your latest
+                recorded dates.
+              </p>
             </div>
+
+            {expenses.length > 0 && (
+              <Link
+                className="dashboard-panel__link"
+                to="/reports"
+              >
+                View reports
+              </Link>
+            )}
           </div>
 
           {chartData.length > 0 ? (
@@ -274,25 +722,37 @@ export default function DashboardPage() {
                       fontSize: 12,
                       fill: "#6f7785",
                     }}
-                    tickFormatter={(value: number): string =>
-                      new Intl.NumberFormat("en-US", {
-                        notation: "compact",
-                        maximumFractionDigits: 1,
-                      }).format(value)
+                    tickFormatter={(
+                      value: number,
+                    ): string =>
+                      new Intl.NumberFormat(
+                        "en-US",
+                        {
+                          notation: "compact",
+                          maximumFractionDigits: 1,
+                        },
+                      ).format(value)
                     }
                   />
 
-                 <Tooltip
-  cursor={{
-    stroke: "rgba(46, 67, 101, 0.18)",
-    strokeWidth: 1,
-  }}
-  formatter={(value) => [
-    formatCurrency(Number(value ?? 0)),
-    "Expense",
-  ]}
-  labelFormatter={(label) => String(label ?? "")}
-/>
+                  <Tooltip
+                    cursor={{
+                      stroke:
+                        "rgba(46, 67, 101, 0.18)",
+                      strokeWidth: 1,
+                    }}
+                    formatter={(
+                      value,
+                    ): [string, string] => [
+                      formatCurrency(
+                        Number(value ?? 0),
+                      ),
+                      "Spending",
+                    ]}
+                    labelFormatter={(label) =>
+                      String(label ?? "")
+                    }
+                  />
 
                   <Line
                     type="monotone"
@@ -323,8 +783,8 @@ export default function DashboardPage() {
                 <h3>No spending trend yet</h3>
 
                 <p>
-                  Add your first expense to begin tracking your
-                  spending.
+                  Add your first expense to begin
+                  tracking your spending.
                 </p>
               </div>
             </div>
@@ -334,11 +794,12 @@ export default function DashboardPage() {
         <article className="dashboard-panel">
           <div className="dashboard-panel__header">
             <div>
-              <h2>Recent expenses</h2>
-              <p>Your latest five transactions</p>
+              <h2>Recent activity</h2>
+
+              <p>Your latest six transactions.</p>
             </div>
 
-            {typedExpenses.length > 0 && (
+            {expenses.length > 0 && (
               <Link
                 className="dashboard-panel__link"
                 to="/expenses"
@@ -350,7 +811,7 @@ export default function DashboardPage() {
 
           {recentExpenses.length > 0 ? (
             <div className="recent-expenses">
-              {recentExpenses.map((expense: Expense) => (
+              {recentExpenses.map((expense) => (
                 <div
                   className="recent-expense"
                   key={expense.expense_id}
@@ -360,17 +821,25 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="recent-expense__details">
-                    <strong>{expense.title}</strong>
+                    <strong>
+                      {expense.title}
+                    </strong>
 
                     <span>
                       {expense.category} ·{" "}
-                      {formatDate(expense.date)}
+                      {expense.payment_method}
                     </span>
+
+                    <small>
+                      {formatDate(expense.date)}
+                    </small>
                   </div>
 
                   <div className="recent-expense__amount">
                     <strong>
-                      {formatCurrency(Number(expense.amount))}
+                      {formatCurrency(
+                        Number(expense.amount),
+                      )}
                     </strong>
 
                     <ArrowUpRight size={15} />
@@ -388,13 +857,131 @@ export default function DashboardPage() {
                 <h3>No expenses yet</h3>
 
                 <p>
-                  Your recently added expenses will appear here.
+                  Your recently added expenses will
+                  appear here.
                 </p>
               </div>
             </div>
           )}
         </article>
       </div>
+
+      <article className="dashboard-panel dashboard-savings">
+        <div className="dashboard-panel__header">
+          <div>
+            <h2>Savings overview</h2>
+
+            <p>
+              Progress across your personal savings
+              goals.
+            </p>
+          </div>
+
+          <Link
+            className="dashboard-panel__link"
+            to="/savings"
+          >
+            View goals
+          </Link>
+        </div>
+
+        {savingsGoals.length === 0 ? (
+          <div className="dashboard-savings-empty">
+            <div className="dashboard-savings-empty__icon">
+              <PiggyBank size={28} />
+            </div>
+
+            <div>
+              <h3>No savings goals yet</h3>
+
+              <p>
+                Create your first savings target to
+                start tracking progress.
+              </p>
+            </div>
+
+            <Link
+              className="dashboard-savings-empty__link"
+              to="/savings"
+            >
+              Create goal
+              <ArrowUpRight size={16} />
+            </Link>
+          </div>
+        ) : (
+          <div className="dashboard-savings-content">
+            <div className="dashboard-savings-main">
+              <div className="dashboard-savings-main__icon">
+                <PiggyBank size={28} />
+              </div>
+
+              <div>
+                <span>Total saved</span>
+
+                <strong>
+                  {formatCurrency(totalSaved)}
+                </strong>
+
+                <small>
+                  {completedSavingsGoals} of{" "}
+                  {savingsGoals.length} goals completed
+                </small>
+              </div>
+            </div>
+
+            <div className="dashboard-savings-progress">
+              <div className="dashboard-savings-progress__heading">
+                <span>Overall progress</span>
+
+                <strong>
+                  {savingsProgress.toFixed(0)}%
+                </strong>
+              </div>
+
+              <div className="dashboard-savings-progress__track">
+                <div
+                  style={{
+                    width: `${savingsProgress}%`,
+                  }}
+                />
+              </div>
+
+              <div className="dashboard-savings-progress__footer">
+                <span>
+                  {formatCurrency(
+                    totalSavingsTarget,
+                  )}{" "}
+                  target
+                </span>
+
+                <span>
+                  {formatCurrency(
+                    savingsRemaining,
+                  )}{" "}
+                  remaining
+                </span>
+              </div>
+            </div>
+
+            <div className="dashboard-savings-goals">
+              <div>
+                <Target size={20} />
+
+                <span>Total goals</span>
+
+                <strong>
+                  {savingsGoals.length}
+                </strong>
+              </div>
+
+              <Link to="/savings">
+                Manage savings
+                <ArrowUpRight size={16} />
+              </Link>
+            </div>
+          </div>
+        )}
+      </article>
     </section>
   );
 }
