@@ -723,6 +723,7 @@
 .expenses-page,
 .reports-page,
 .savings-page,
+.settings-page,
 .not-found-page {
   width: 100%;
   min-width: 0;
@@ -733,7 +734,8 @@
 .dashboard-page h1,
 .expenses-page h1,
 .reports-page h1,
-.savings-page h1 {
+.savings-page h1,
+.settings-page h1 {
   margin-top: 0;
 
   color: var(--layout-blue);

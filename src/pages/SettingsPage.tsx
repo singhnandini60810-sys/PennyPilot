@@ -2,8 +2,9 @@ import {
   useEffect,
   useState,
   type FormEvent,
-  type ReactNode,
+
 } from "react";
+
 import {
   Bell,
   Check,
@@ -53,7 +54,7 @@ const settingsNavigation: Array<{
   id: SettingsSection;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: React.ReactElement;
 }> = [
   {
     id: "profile",

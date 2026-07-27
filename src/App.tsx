@@ -1,19 +1,19 @@
 import { Route, Routes } from "react-router-dom";
 
 import AppLayout from "./components/layout/AppLayout";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import ReportsPage from "./pages/ReportsPage";
 import SavingsPage from "./pages/SavingsPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
-
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
@@ -61,6 +61,11 @@ function App() {
         <Route
           path="/savings"
           element={<SavingsPage />}
+        />
+
+        <Route
+          path="/settings"
+          element={<SettingsPage />}
         />
       </Route>
 
