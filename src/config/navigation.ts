@@ -7,6 +7,7 @@ import {
   ReceiptText,
   Settings,
   Target,
+  Download,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -46,4 +47,9 @@ export const navigationItems: NavigationItem[] = [
     path: "/settings",
     icon: Settings,
   },
+  {
+  label: "Export",
+  path: "/export",
+  icon: Download,
+},
 ];

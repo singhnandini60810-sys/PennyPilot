@@ -15,6 +15,7 @@ import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import BudgetPage from "./pages/BudgetPage";
+import ExportPage from "./pages/ExportPage";
 
 function App() {
   return (
@@ -80,6 +81,10 @@ function App() {
           element={<SettingsPage />}
         />
       </Route>
+      <Route
+  path="/export"
+  element={<ExportPage />}
+/>
 
       {/* Fallback route */}
 
