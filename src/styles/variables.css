@@ -1,4 +1,6 @@
 :root {
+  color-scheme: light;
+
   /* PennyPilot palette */
   --color-marigold: #e59d2c;
   --color-marigold-dark: #c98117;
@@ -19,11 +21,15 @@
   --color-background: #f7f0e4;
   --color-surface: #fffaf2;
   --color-surface-secondary: #f1e6d3;
+  --color-surface-hover: #f7ead6;
 
   --color-text-primary: #1f2937;
   --color-text-secondary: #64748b;
+  --color-text-muted: #7c8798;
   --color-text-light: #ffffff;
+
   --color-border: #dfd2bc;
+  --color-border-strong: #cbb99d;
 
   --color-success: #3f8555;
   --color-success-light: #e8f4ec;
@@ -34,9 +40,18 @@
   --color-warning: #c77d0a;
   --color-warning-light: #fff3d8;
 
+  /* Form controls */
+  --color-input-background: #ffffff;
+  --color-input-text: #1f2937;
+  --color-placeholder: #8b95a5;
+
+  /* Overlay */
+  --color-overlay: rgba(31, 48, 77, 0.45);
+
   /* Typography */
   --font-primary:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 
   --font-heading:
     Georgia, "Times New Roman", serif;
@@ -59,4 +74,113 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
+}
+
+/* Dark theme */
+:root[data-resolved-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brand colors adjusted for dark backgrounds */
+  --color-marigold: #f0ad42;
+  --color-marigold-dark: #d88c1d;
+  --color-marigold-light: #f7ca7b;
+
+  --color-buff: #d7b96f;
+  --color-pearl: #3a4557;
+  --color-pearl-light: #182131;
+
+  --color-police-blue: #8fa8cc;
+  --color-police-blue-dark: #f1f5f9;
+  --color-police-blue-light: #b8c9e2;
+
+  --color-citrine-brown: #e49a62;
+  --color-citrine-brown-dark: #f3b486;
+
+  /* Semantic colors */
+  --color-background: #0f1724;
+  --color-surface: #192334;
+  --color-surface-secondary: #222e41;
+  --color-surface-hover: #2a374c;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #c7d0dc;
+  --color-text-muted: #9caabc;
+  --color-text-light: #ffffff;
+
+  --color-border: #36445a;
+  --color-border-strong: #4b5c74;
+
+  --color-success: #75c48c;
+  --color-success-light: #183c28;
+
+  --color-error: #f08078;
+  --color-error-light: #471f24;
+
+  --color-warning: #f4bd58;
+  --color-warning-light: #493718;
+
+  /* Form controls */
+  --color-input-background: #111b2a;
+  --color-input-text: #f8fafc;
+  --color-placeholder: #8e9caf;
+
+  /* Overlay */
+  --color-overlay: rgba(0, 0, 0, 0.68);
+
+  /* Shadows */
+  --shadow-small: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --shadow-medium: 0 10px 28px rgba(0, 0, 0, 0.34);
+  --shadow-large: 0 20px 48px rgba(0, 0, 0, 0.42);
+}
+
+/* Fallback in case any older code uses data-theme directly */
+:root[data-theme="dark"]:not([data-resolved-theme]) {
+  color-scheme: dark;
+
+  --color-marigold: #f0ad42;
+  --color-marigold-dark: #d88c1d;
+  --color-marigold-light: #f7ca7b;
+
+  --color-buff: #d7b96f;
+  --color-pearl: #3a4557;
+  --color-pearl-light: #182131;
+
+  --color-police-blue: #8fa8cc;
+  --color-police-blue-dark: #f1f5f9;
+  --color-police-blue-light: #b8c9e2;
+
+  --color-citrine-brown: #e49a62;
+  --color-citrine-brown-dark: #f3b486;
+
+  --color-background: #0f1724;
+  --color-surface: #192334;
+  --color-surface-secondary: #222e41;
+  --color-surface-hover: #2a374c;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #c7d0dc;
+  --color-text-muted: #9caabc;
+  --color-text-light: #ffffff;
+
+  --color-border: #36445a;
+  --color-border-strong: #4b5c74;
+
+  --color-success: #75c48c;
+  --color-success-light: #183c28;
+
+  --color-error: #f08078;
+  --color-error-light: #471f24;
+
+  --color-warning: #f4bd58;
+  --color-warning-light: #493718;
+
+  --color-input-background: #111b2a;
+  --color-input-text: #f8fafc;
+  --color-placeholder: #8e9caf;
+
+  --color-overlay: rgba(0, 0, 0, 0.68);
+
+  --shadow-small: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --shadow-medium: 0 10px 28px rgba(0, 0, 0, 0.34);
+  --shadow-large: 0 20px 48px rgba(0, 0, 0, 0.42);
 }

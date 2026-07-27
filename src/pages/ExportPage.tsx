@@ -7,6 +7,12 @@ import ExportFilters from "../components/export/ExportFilters";
 import ExportFormat from "../components/export/ExportFormat";
 import ReportPreview from "../components/export/ReportPreview";
 
+import {
+  exportCSV,
+  exportExcel,
+  exportPDF,
+} from "../services/exportService";
+
 import "../components/export/export.css";
 
 export type ExportFormatType = "pdf" | "excel" | "csv";
@@ -29,16 +35,18 @@ export default function ExportPage() {
 
   const { expenses } = expenseContext;
 
-  const [format, setFormat] = useState<ExportFormatType>("pdf");
+  const [format, setFormat] =
+    useState<ExportFormatType>("pdf");
 
-  const [columns, setColumns] = useState<ExportColumns>({
-    title: true,
-    category: true,
-    amount: true,
-    payment: true,
-    date: true,
-    notes: true,
-  });
+  const [columns, setColumns] =
+    useState<ExportColumns>({
+      title: true,
+      category: true,
+      amount: true,
+      payment: true,
+      date: true,
+      notes: true,
+    });
 
   const categories = useMemo(
     () =>
@@ -50,11 +58,46 @@ export default function ExportPage() {
 
   const paymentMethods = useMemo(
     () =>
-      [...new Set(expenses.map((expense) => expense.payment_method))]
+      [
+        ...new Set(
+          expenses.map((expense) => expense.payment_method)
+        ),
+      ]
         .filter(Boolean)
         .sort(),
     [expenses]
   );
+
+  const handleExport = () => {
+    const exportData = expenses.map((expense) => {
+      const row: any = {};
+
+      if (columns.title) row.title = expense.title;
+      if (columns.category) row.category = expense.category;
+      if (columns.amount) row.amount = expense.amount;
+      if (columns.payment)
+        row.payment_method = expense.payment_method;
+      if (columns.date) row.date = expense.date;
+      if (columns.notes)
+        row.notes = expense.notes ?? "";
+
+      return row;
+    });
+
+    switch (format) {
+      case "csv":
+        exportCSV(exportData);
+        break;
+
+      case "excel":
+        exportExcel(exportData);
+        break;
+
+      case "pdf":
+        exportPDF(exportData);
+        break;
+    }
+  };
 
   return (
     <main className="export-page">
@@ -69,19 +112,26 @@ export default function ExportPage() {
           format={format}
         />
 
-        <ExportContents columns={columns} setColumns={setColumns} />
+        <ExportContents
+          columns={columns}
+          setColumns={setColumns}
+        />
 
         <ExportFilters
           categories={categories}
           paymentMethods={paymentMethods}
         />
 
-        <ExportFormat format={format} setFormat={setFormat} />
+        <ExportFormat
+          format={format}
+          setFormat={setFormat}
+        />
 
         <ReportPreview
           expenses={expenses}
           columns={columns}
           format={format}
+          onDownload={handleExport}
         />
       </div>
     </main>

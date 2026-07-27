@@ -1,10 +1,9 @@
 /* =========================================================
    EXPORT PAGE
-   ========================================================= */
+========================================================= */
 
 .export-page {
   position: relative;
-  isolation: isolate;
 
   width: 100%;
   max-width: 100%;
@@ -12,128 +11,149 @@
   min-height: calc(100vh - 84px);
 
   padding: 28px 30px 48px;
-
-  overflow: hidden;
   box-sizing: border-box;
+
+  overflow-x: hidden;
 
   background-image:
     linear-gradient(
       135deg,
-      rgba(235, 221, 197, 0.9),
-      rgba(243, 213, 141, 0.48)
+      rgba(235, 221, 197, 0.72),
+      rgba(243, 213, 141, 0.34)
     ),
-    url("/images/app-background.png");
+   url("/images/app-background.png");
 
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  background-attachment: fixed;
 }
+
 /*
-  This container stays inside the space already provided
-  by AppLayout. It does not add a sidebar margin.
+  AppLayout already positions the main content beside the sidebar.
+  Do not add margin-left or calc() width here.
 */
 
 .export-page-content {
   position: relative;
-  z-index: 2;
+  z-index: 1;
 
   display: flex;
   flex-direction: column;
   gap: 26px;
 
   width: 100%;
-  max-width: 100%;
+  max-width: 1380px;
   min-width: 0;
 
-  margin: 0;
-
+  margin: 0 auto;
   box-sizing: border-box;
 
   animation: exportPageEntrance 0.4s ease;
 }
 
 /* =========================================================
-   BACKGROUND CIRCLES
-   ========================================================= */
+   BACKGROUND DECORATIONS
+========================================================= */
 
 .export-background-decoration {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
+
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(1px);
 }
 
 .export-decoration-one {
   top: 70px;
   right: 3%;
+
   width: 240px;
   height: 240px;
-  background: rgba(229, 157, 44, 0.18);
+
+  background: rgba(229, 157, 44, 0.17);
 }
 
 .export-decoration-two {
   top: 490px;
   left: 4%;
+
   width: 170px;
   height: 170px;
-  background: rgba(46, 67, 101, 0.12);
+
+  background: rgba(46, 67, 101, 0.11);
 }
 
 .export-decoration-three {
   right: 14%;
   bottom: 70px;
+
   width: 120px;
   height: 120px;
-  background: rgba(138, 59, 8, 0.1);
+
+  background: rgba(138, 59, 8, 0.09);
 }
 
 /* =========================================================
-   SHARED GLASS CARD
-   ========================================================= */
+   SHARED CARDS
+========================================================= */
 
 .export-hero,
 .export-card {
   position: relative;
+
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.88);
+
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.9);
+
   box-shadow:
     0 18px 45px rgba(46, 67, 101, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* Dashboard-style circle design inside every card */
+/* Large dashboard-style circle */
 
 .export-hero::before,
 .export-card::before {
   position: absolute;
   top: -62px;
   right: -48px;
+
   width: 160px;
   height: 160px;
+
   border-radius: 50%;
   background: rgba(229, 157, 44, 0.13);
+
   content: "";
   pointer-events: none;
 }
+
+/* Ring-style dashboard circle */
 
 .export-hero::after,
 .export-card::after {
   position: absolute;
   right: 82px;
   bottom: -65px;
+
   width: 115px;
   height: 115px;
-  border: 18px solid rgba(46, 67, 101, 0.06);
+
+  border: 18px solid rgba(46, 67, 101, 0.055);
   border-radius: 50%;
+
   content: "";
   pointer-events: none;
 }
-
-/* Keep card content above decorative circles */
 
 .export-hero > *,
 .export-card > * {
@@ -143,20 +163,23 @@
 
 /* =========================================================
    HERO
-   ========================================================= */
+========================================================= */
 
 .export-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 26px;
+
   padding: 32px;
   border-radius: 26px;
 }
 
 .export-hero h1 {
   margin: 0;
+
   color: #2e4365;
+
   font-size: clamp(1.8rem, 3vw, 2.45rem);
   line-height: 1.15;
   letter-spacing: -0.04em;
@@ -165,7 +188,9 @@
 .export-hero p {
   max-width: 630px;
   margin: 10px 0 0;
+
   color: #687386;
+
   font-size: 0.98rem;
   line-height: 1.7;
 }
@@ -174,49 +199,74 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 88px;
   height: 88px;
+
+  flex-shrink: 0;
+
   border: 1px solid rgba(229, 157, 44, 0.3);
   border-radius: 25px;
+
   color: #8a3b08;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(243, 213, 141, 0.92),
-      rgba(229, 157, 44, 0.42)
-    );
+
+  background: linear-gradient(
+    145deg,
+    rgba(243, 213, 141, 0.92),
+    rgba(229, 157, 44, 0.42)
+  );
+
   box-shadow: 0 14px 28px rgba(138, 59, 8, 0.15);
 }
 
+/* =========================================================
+   SUMMARY
+========================================================= */
+
 .summary-grid {
   grid-column: 1 / -1;
+
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+
   width: 100%;
+  min-width: 0;
 }
 
 .summary-card {
   position: relative;
+
   min-width: 0;
+  min-height: 152px;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
   overflow: hidden;
-  padding: 20px;
+
+  padding: 20px 24px;
+
   border: 1px solid rgba(46, 67, 101, 0.08);
   border-radius: 19px;
-  background: rgba(255, 255, 255, 0.78);
+
+  background: rgba(255, 255, 255, 0.8);
+
   box-shadow: 0 10px 24px rgba(46, 67, 101, 0.07);
 }
-
-/* Small circles inside hero summary cards */
 
 .summary-card::before {
   position: absolute;
   top: -25px;
   right: -18px;
+
   width: 76px;
   height: 76px;
+
   border-radius: 50%;
-  background: rgba(229, 157, 44, 0.13);
+  background: rgba(229, 157, 44, 0.14);
+
   content: "";
 }
 
@@ -224,22 +274,26 @@
   position: absolute;
   right: 34px;
   bottom: -28px;
+
   width: 58px;
   height: 58px;
+
   border: 9px solid rgba(46, 67, 101, 0.05);
   border-radius: 50%;
+
   content: "";
 }
 
-.summary-card span,
-.summary-card strong {
+.summary-card > * {
   position: relative;
   z-index: 1;
 }
 
 .summary-card span {
   display: block;
-  color: #7a8494;
+
+  color: #748095;
+
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -248,26 +302,27 @@
 
 .summary-card strong {
   display: block;
-  margin-top: 8px;
+
   color: #2e4365;
+
   font-size: 1.55rem;
   line-height: 1.1;
 }
 
 /* =========================================================
-   MAIN CARDS
-   ========================================================= */
+   MAIN EXPORT CARDS
+========================================================= */
 
 .export-card {
-  width: 100%;
-  min-width: 0;
   padding: 28px;
   border-radius: 25px;
 }
 
 .export-card h2 {
   margin: 0;
+
   color: #2e4365;
+
   font-size: 1.4rem;
   letter-spacing: -0.025em;
 }
@@ -275,35 +330,46 @@
 .section-description {
   max-width: 700px;
   margin: 8px 0 0;
+
   color: #717b8c;
+
   font-size: 0.94rem;
   line-height: 1.6;
 }
 
 /* =========================================================
-   REPORT CONTENT CHECKBOXES
-   ========================================================= */
+   CONTENT CHECKBOXES
+========================================================= */
 
 .checkbox-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
+
   margin-top: 23px;
 }
 
 .checkbox-card {
   position: relative;
+
   display: flex;
   align-items: center;
-  min-width: 0;
   gap: 13px;
+
+  min-width: 0;
+
   overflow: hidden;
+
   padding: 17px 18px;
+
   border: 1px solid rgba(46, 67, 101, 0.1);
   border-radius: 17px;
+
   color: #2e4365;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.74);
+
   cursor: pointer;
+
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -315,26 +381,35 @@
   position: absolute;
   top: -23px;
   right: -18px;
+
   width: 62px;
   height: 62px;
+
   border-radius: 50%;
-  background: rgba(243, 213, 141, 0.3);
+  background: rgba(243, 213, 141, 0.32);
+
   content: "";
 }
 
 .checkbox-card:hover {
   border-color: rgba(229, 157, 44, 0.58);
-  background: rgba(255, 250, 238, 0.95);
+  background: rgba(255, 250, 238, 0.96);
+
   box-shadow: 0 10px 22px rgba(229, 157, 44, 0.12);
+
   transform: translateY(-2px);
 }
 
 .checkbox-card input {
   position: relative;
   z-index: 1;
+
   width: 19px;
   height: 19px;
   margin: 0;
+
+  flex-shrink: 0;
+
   accent-color: #e59d2c;
   cursor: pointer;
 }
@@ -342,16 +417,21 @@
 .checkbox-card span {
   position: relative;
   z-index: 1;
+
+  min-width: 0;
+
   overflow: hidden;
+
   font-size: 0.92rem;
   font-weight: 700;
+
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* =========================================================
    FILTERS
-   ========================================================= */
+========================================================= */
 
 .filter-group {
   margin-top: 26px;
@@ -359,26 +439,34 @@
 
 .filter-group + .filter-group {
   padding-top: 24px;
+
   border-top: 1px solid rgba(46, 67, 101, 0.08);
 }
 
 .filter-group h3 {
   margin: 0 0 13px;
+
   color: #2e4365;
+
   font-size: 1rem;
 }
 
 .export-select {
   width: 100%;
   min-height: 50px;
+
   padding: 0 15px;
+
   border: 1px solid rgba(46, 67, 101, 0.15);
   border-radius: 15px;
   outline: none;
+
   color: #2e4365;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
+
   font-family: inherit;
   font-size: 0.94rem;
+
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -398,43 +486,59 @@
 .tag {
   display: inline-flex;
   align-items: center;
+
   min-height: 39px;
+
   padding: 8px 15px;
+
   border: 1px solid rgba(229, 157, 44, 0.25);
   border-radius: 999px;
+
   color: #8a3b08;
   background: rgba(243, 213, 141, 0.48);
+
   font-size: 0.84rem;
   font-weight: 700;
 }
 
 /* =========================================================
    EXPORT FORMAT
-   ========================================================= */
+========================================================= */
 
 .format-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 17px;
+
   margin-top: 22px;
 }
 
 .format-card {
   position: relative;
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 155px;
   gap: 10px;
+
+  min-width: 0;
+  min-height: 155px;
+
   overflow: hidden;
+
   padding: 23px;
+
   border: 1px solid rgba(46, 67, 101, 0.1);
   border-radius: 20px;
+
   color: #2e4365;
-  background: rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.78);
+
   font-family: inherit;
   text-align: left;
+
   cursor: pointer;
+
   transition:
     transform 0.22s ease,
     border-color 0.22s ease,
@@ -446,10 +550,13 @@
   position: absolute;
   top: -38px;
   right: -30px;
+
   width: 112px;
   height: 112px;
+
   border-radius: 50%;
   background: rgba(229, 157, 44, 0.14);
+
   content: "";
 }
 
@@ -457,10 +564,13 @@
   position: absolute;
   right: 35px;
   bottom: -33px;
+
   width: 74px;
   height: 74px;
+
   border: 12px solid rgba(46, 67, 101, 0.05);
   border-radius: 50%;
+
   content: "";
 }
 
@@ -471,19 +581,23 @@
 
 .format-card:hover {
   border-color: rgba(229, 157, 44, 0.5);
+
   box-shadow: 0 14px 28px rgba(46, 67, 101, 0.1);
+
   transform: translateY(-3px);
 }
 
 .format-card.active {
   border-color: #2e4365;
+
   color: #ffffff;
-  background:
-    linear-gradient(
-      145deg,
-      #2e4365,
-      #3e587e
-    );
+
+  background: linear-gradient(
+    145deg,
+    #2e4365,
+    #3e587e
+  );
+
   box-shadow: 0 16px 30px rgba(46, 67, 101, 0.2);
 }
 
@@ -501,43 +615,55 @@
 
 .format-card small {
   color: inherit;
+
   font-size: 0.82rem;
+
   opacity: 0.72;
 }
 
 /* =========================================================
    REPORT PREVIEW
-   ========================================================= */
+========================================================= */
 
 .preview-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
+
   margin: 22px 0 4px;
 }
 
 .preview-item {
   position: relative;
+
   display: flex;
   align-items: center;
-  min-width: 0;
   gap: 13px;
+
+  min-width: 0;
+
   overflow: hidden;
+
   padding: 18px;
+
   border: 1px solid rgba(46, 67, 101, 0.08);
   border-radius: 18px;
+
   color: #8a3b08;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .preview-item::after {
   position: absolute;
   top: -23px;
   right: -18px;
+
   width: 68px;
   height: 68px;
+
   border-radius: 50%;
   background: rgba(229, 157, 44, 0.12);
+
   content: "";
 }
 
@@ -552,7 +678,9 @@
 
 .preview-item span {
   display: block;
+
   color: #7b8493;
+
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -560,40 +688,53 @@
 
 .preview-item strong {
   display: block;
+
   margin-top: 4px;
+
   overflow: hidden;
+
   color: #2e4365;
+
   font-size: 1.16rem;
+
   text-overflow: ellipsis;
 }
 
 /* =========================================================
    DOWNLOAD BUTTON
-   ========================================================= */
+========================================================= */
 
 .download-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+
   width: 100%;
   min-height: 56px;
-  gap: 10px;
+
   margin-top: 20px;
   padding: 14px 22px;
+
   border: 0;
   border-radius: 17px;
+
   color: #ffffff;
-  background:
-    linear-gradient(
-      135deg,
-      #e59d2c,
-      #c87519
-    );
+
+  background: linear-gradient(
+    135deg,
+    #e59d2c,
+    #c87519
+  );
+
   box-shadow: 0 13px 25px rgba(229, 157, 44, 0.24);
+
   font-family: inherit;
   font-size: 0.96rem;
   font-weight: 800;
+
   cursor: pointer;
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -602,28 +743,41 @@
 
 .download-button:hover {
   box-shadow: 0 17px 31px rgba(138, 59, 8, 0.25);
+
   filter: brightness(0.97);
+
   transform: translateY(-2px);
 }
 
 .download-button:active {
   box-shadow: 0 8px 18px rgba(138, 59, 8, 0.2);
+
   transform: translateY(0);
+}
+
+.download-button:disabled {
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+  opacity: 0.55;
+
+  transform: none;
 }
 
 /* =========================================================
    DARK MODE
-   ========================================================= */
+========================================================= */
 
 [data-theme="dark"] .export-page,
 .dark .export-page {
   background-image:
     linear-gradient(
       135deg,
-      rgba(20, 30, 46, 0.9),
-      rgba(46, 67, 101, 0.8)
+      rgba(20, 30, 46, 0.88),
+      rgba(46, 67, 101, 0.76)
     ),
-    url("/images/dashboard-background.jpg");
+    url("/images/app-background.jpg");
 }
 
 [data-theme="dark"] .export-hero,
@@ -631,6 +785,7 @@
 .dark .export-hero,
 .dark .export-card {
   border-color: rgba(255, 255, 255, 0.08);
+
   background: rgba(27, 38, 55, 0.9);
 }
 
@@ -649,8 +804,12 @@
 
 [data-theme="dark"] .export-hero p,
 [data-theme="dark"] .section-description,
+[data-theme="dark"] .summary-card span,
+[data-theme="dark"] .preview-item span,
 .dark .export-hero p,
-.dark .section-description {
+.dark .section-description,
+.dark .summary-card span,
+.dark .preview-item span {
   color: #b7c0cc;
 }
 
@@ -665,13 +824,19 @@
 .dark .preview-item,
 .dark .export-select {
   border-color: rgba(255, 255, 255, 0.08);
+
   color: #e8edf4;
   background: rgba(255, 255, 255, 0.06);
 }
 
+[data-theme="dark"] .checkbox-card span,
+.dark .checkbox-card span {
+  color: #e8edf4;
+}
+
 /* =========================================================
    TABLET
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 1100px) {
   .export-page {
@@ -685,28 +850,54 @@
 
 /* =========================================================
    MOBILE
-   ========================================================= */
+========================================================= */
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .export-page {
+    width: 100%;
+    max-width: 100%;
+
     min-height: 100vh;
-    padding: 18px 14px 105px;
+
+    padding: 20px 16px 105px;
+
     background-attachment: scroll;
   }
 
   .export-page-content {
+    max-width: 100%;
     gap: 18px;
   }
 
   .export-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    padding: 24px 20px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .format-grid,
+  .preview-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .export-hero {
+    grid-template-columns: 1fr;
+
     padding: 23px 20px;
+
     border-radius: 22px;
   }
 
   .hero-icon {
     width: 68px;
     height: 68px;
+
     border-radius: 20px;
   }
 
@@ -719,9 +910,11 @@
 
   .export-card {
     padding: 22px 18px;
+
     border-radius: 21px;
   }
 
+  .summary-card,
   .checkbox-card,
   .format-card,
   .preview-item {
@@ -743,7 +936,7 @@
 
 /* =========================================================
    SMALL MOBILE
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 420px) {
   .export-page {
@@ -766,13 +959,14 @@
 
   .tag {
     padding: 7px 12px;
+
     font-size: 0.78rem;
   }
 }
 
 /* =========================================================
    ANIMATION
-   ========================================================= */
+========================================================= */
 
 @keyframes exportPageEntrance {
   from {

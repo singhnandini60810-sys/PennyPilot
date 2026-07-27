@@ -4,15 +4,18 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 export interface ExportExpense {
-  title: string;
-  category: string;
-  amount: number;
-  payment_method: string;
-  date: string;
-  notes?: string;
+  title: any;
+  category: any;
+  amount: any;
+  payment_method: any;
+  date: any;
+  notes?: any;
 }
 
-const FILE_NAME = "PennyPilot-Expenses";
+function fileName(ext: string) {
+  const today = new Date().toISOString().split("T")[0];
+  return `PennyPilot_Report_${today}.${ext}`;
+}
 
 export function exportCSV(expenses: ExportExpense[]) {
   const worksheet = XLSX.utils.json_to_sheet(expenses);
@@ -23,10 +26,12 @@ export function exportCSV(expenses: ExportExpense[]) {
     type: "text/csv;charset=utf-8;",
   });
 
-  saveAs(blob, `${FILE_NAME}.csv`);
+  saveAs(blob, fileName("csv"));
 }
 
-export function exportExcel(expenses: ExportExpense[]) {
+export function exportExcel(
+  expenses: ExportExpense[],
+) {
   const worksheet = XLSX.utils.json_to_sheet(expenses);
 
   const workbook = XLSX.utils.book_new();
@@ -34,29 +39,29 @@ export function exportExcel(expenses: ExportExpense[]) {
   XLSX.utils.book_append_sheet(
     workbook,
     worksheet,
-    "Expenses",
+    "Expenses"
   );
 
-  XLSX.writeFile(workbook, `${FILE_NAME}.xlsx`);
+  XLSX.writeFile(workbook, fileName("xlsx"));
 }
 
-export function exportPDF(expenses: ExportExpense[]) {
+export function exportPDF(
+  expenses: ExportExpense[],
+) {
   const pdf = new jsPDF();
 
-  pdf.setFontSize(20);
-  pdf.text("PennyPilot Expense Report", 14, 20);
+  pdf.setFontSize(18);
+  pdf.text("PennyPilot Expense Report", 14, 18);
 
-  pdf.setFontSize(11);
-
+  pdf.setFontSize(10);
   pdf.text(
-    `Generated: ${new Date().toLocaleDateString()}`,
+    `Generated on ${new Date().toLocaleString()}`,
     14,
-    30,
+    28
   );
 
   autoTable(pdf, {
-    startY: 40,
-
+    startY: 36,
     head: [
       [
         "Title",
@@ -64,17 +69,18 @@ export function exportPDF(expenses: ExportExpense[]) {
         "Amount",
         "Payment",
         "Date",
+        "Notes",
       ],
     ],
-
-    body: expenses.map((expense) => [
-      expense.title,
-      expense.category,
-      `₹${expense.amount}`,
-      expense.payment_method,
-      expense.date,
+    body: expenses.map((e) => [
+      e.title,
+      e.category,
+      e.amount,
+      e.payment_method,
+      e.date,
+      e.notes,
     ]),
   });
 
-  pdf.save(`${FILE_NAME}.pdf`);
+  pdf.save(fileName("pdf"));
 }

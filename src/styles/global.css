@@ -185,3 +185,20 @@ p {
     width: 100%;
   }
 }
+input,
+select,
+textarea {
+  background: var(--color-input-background);
+  color: var(--color-input-text);
+  border-color: var(--color-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+option {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}

@@ -7,6 +7,8 @@ import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import ReportsPage from "./pages/ReportsPage";
 import SavingsPage from "./pages/SavingsPage";
+import BudgetPage from "./pages/BudgetPage";
+import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -14,23 +16,15 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
-import BudgetPage from "./pages/BudgetPage";
-import ExportPage from "./pages/ExportPage";
 
 function App() {
   return (
     <Routes>
       {/* Public routes */}
 
-      <Route
-        path="/login"
-        element={<LoginPage />}
-      />
+      <Route path="/login" element={<LoginPage />} />
 
-      <Route
-        path="/signup"
-        element={<SignupPage />}
-      />
+      <Route path="/signup" element={<SignupPage />} />
 
       <Route
         path="/verify-email"
@@ -77,14 +71,15 @@ function App() {
         />
 
         <Route
+          path="/export"
+          element={<ExportPage />}
+        />
+
+        <Route
           path="/settings"
           element={<SettingsPage />}
         />
       </Route>
-      <Route
-  path="/export"
-  element={<ExportPage />}
-/>
 
       {/* Fallback route */}
 

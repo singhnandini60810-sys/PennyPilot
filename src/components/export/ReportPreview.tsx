@@ -1,7 +1,4 @@
-import {
-  Download,
-  Eye,
-} from "lucide-react";
+import { Download, Eye } from "lucide-react";
 
 import type {
   ExportColumns,
@@ -12,22 +9,23 @@ interface Props {
   expenses: any[];
   columns: ExportColumns;
   format: ExportFormatType;
+  onDownload: () => void;
 }
 
 export default function ReportPreview({
   expenses,
   columns,
   format,
+  onDownload,
 }: Props) {
-  const selectedColumns = Object.values(columns).filter(Boolean).length;
+  const selectedColumns =
+    Object.values(columns).filter(Boolean).length;
 
   return (
     <section className="export-card">
-
       <h2>Report Preview</h2>
 
       <div className="preview-grid">
-
         <div className="preview-item">
           <Eye size={22} />
           <div>
@@ -51,17 +49,15 @@ export default function ReportPreview({
             <strong>{format.toUpperCase()}</strong>
           </div>
         </div>
-
       </div>
 
-      <button className="download-button">
-
+      <button
+        className="download-button"
+        onClick={onDownload}
+      >
         <Download size={20} />
-
         Download Report
-
       </button>
-
     </section>
   );
 }

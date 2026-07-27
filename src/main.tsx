@@ -10,13 +10,16 @@ import { ExpenseProvider } from "./context/ExpenseContext";
 import "./index.css";
 import "./styles/auth.css";
 import './styles/savings.css'
+import { ThemeProvider } from "./context/ThemeContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <ExpenseProvider>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </ExpenseProvider>
       </AuthProvider>
     </BrowserRouter>
