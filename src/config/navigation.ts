@@ -1,29 +1,43 @@
+import type { LucideIcon } from "lucide-react";
+
 import {
-  BarChart3,
+  ChartNoAxesCombined,
   LayoutDashboard,
   PiggyBank,
   ReceiptText,
-} from 'lucide-react'
+  Settings,
+} from "lucide-react";
 
-export const navigationItems = [
+export interface NavigationItem {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+export const navigationItems: NavigationItem[] = [
   {
-    label: 'Dashboard',
-    path: '/',
+    label: "Dashboard",
+    path: "/",
     icon: LayoutDashboard,
   },
   {
-    label: 'Expenses',
-    path: '/expenses',
+    label: "Expenses",
+    path: "/expenses",
     icon: ReceiptText,
   },
   {
-    label: 'Reports',
-    path: '/reports',
-    icon: BarChart3,
+    label: "Reports",
+    path: "/reports",
+    icon: ChartNoAxesCombined,
   },
   {
-    label: 'Savings',
-    path: '/savings',
+    label: "Savings",
+    path: "/savings",
     icon: PiggyBank,
   },
-]
+  {
+    label: "Settings",
+    path: "/settings",
+    icon: Settings,
+  },
+];
