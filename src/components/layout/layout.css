@@ -718,6 +718,9 @@
 /* =========================================================
    PAGE CONTAINERS
 ========================================================= */
+/* ==========================================================
+   PAGE CONTAINERS
+========================================================= */
 
 .dashboard-page,
 .expenses-page,
@@ -725,10 +728,11 @@
 .savings-page,
 .budget-page,
 .settings-page,
+.export-page,
 .not-found-page {
   width: 100%;
+  max-width: 100%;
   min-width: 0;
-
   box-sizing: border-box;
 }
 
@@ -737,9 +741,9 @@
 .reports-page h1,
 .savings-page h1,
 .budget-page h1,
-.settings-page h1 {
+.settings-page h1,
+.export-page h1 {
   margin-top: 0;
-
   color: var(--layout-blue);
 }
 
@@ -749,19 +753,23 @@
 .reports-page__heading,
 .reports-page__header,
 .savings-page__heading,
-.savings-page__header {
+.savings-page__header,
+.budget-page__heading,
+.settings-page__heading,
+.export-page__heading {
   margin-top: 0;
 }
 
 .dashboard-page__heading p,
 .expenses-page__heading p,
 .reports-page__heading p,
-.savings-page__heading p {
+.savings-page__heading p,
+.budget-page__heading p,
+.settings-page__heading p,
+.export-page__heading p {
   margin-top: 8px;
-
   color: #6b7280;
 }
-
 /* =========================================================
    COMMON CARD
 ========================================================= */

@@ -42,48 +42,48 @@ export default function ExportPage() {
 
   const categories = useMemo(
     () =>
-      [...new Set(expenses.map((expense) => expense.category))].sort(),
+      [...new Set(expenses.map((expense) => expense.category))]
+        .filter(Boolean)
+        .sort(),
     [expenses]
   );
 
   const paymentMethods = useMemo(
     () =>
-      [...new Set(expenses.map((expense) => expense.payment_method))].sort(),
+      [...new Set(expenses.map((expense) => expense.payment_method))]
+        .filter(Boolean)
+        .sort(),
     [expenses]
   );
 
   return (
-    <div className="page-container">
-      <div className="export-page">
+    <main className="export-page">
+      <div className="export-background-decoration export-decoration-one" />
+      <div className="export-background-decoration export-decoration-two" />
+      <div className="export-background-decoration export-decoration-three" />
 
+      <div className="export-page-content">
         <ExportSummary
           totalRecords={expenses.length}
           totalCategories={categories.length}
           format={format}
         />
 
-        <ExportContents
-          columns={columns}
-          setColumns={setColumns}
-        />
+        <ExportContents columns={columns} setColumns={setColumns} />
 
         <ExportFilters
           categories={categories}
           paymentMethods={paymentMethods}
         />
 
-        <ExportFormat
-          format={format}
-          setFormat={setFormat}
-        />
+        <ExportFormat format={format} setFormat={setFormat} />
 
         <ReportPreview
           expenses={expenses}
           columns={columns}
           format={format}
         />
-
       </div>
-    </div>
+    </main>
   );
 }
