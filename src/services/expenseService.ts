@@ -1,20 +1,40 @@
+import { getAccessToken } from './authService'
+
 import type {
   Expense,
   ExpenseApiResponse,
   ExpenseFormData,
 } from '../types/expense'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
-console.log('PennyPilot API base URL:', API_BASE_URL)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(
+  /\/$/,
+  '',
+)
 
 function getApiUrl(path = ''): string {
   if (!API_BASE_URL) {
     throw new Error(
-      'PennyPilot API URL is not configured. Add VITE_API_BASE_URL to your .env file.',
+      'PennyPilot API URL is not configured. Add VITE_API_BASE_URL to your environment variables.',
     )
   }
 
   return `${API_BASE_URL}${path}`
+}
+
+async function getAuthorizationHeaders(): Promise<
+  Record<string, string>
+> {
+  const accessToken = await getAccessToken()
+
+  if (!accessToken) {
+    throw new Error(
+      'Your login session has expired. Please sign in again.',
+    )
+  }
+
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  }
 }
 
 async function parseApiResponse(
@@ -30,6 +50,18 @@ async function parseApiResponse(
     }
   }
 
+  if (response.status === 401) {
+    throw new Error(
+      'Your login session is invalid or has expired. Please sign in again.',
+    )
+  }
+
+  if (response.status === 403) {
+    throw new Error(
+      'You are not authorized to perform this action.',
+    )
+  }
+
   if (!response.ok) {
     throw new Error(
       result.error ??
@@ -42,10 +74,14 @@ async function parseApiResponse(
 }
 
 export async function getExpenses(): Promise<Expense[]> {
+  const authorizationHeaders =
+    await getAuthorizationHeaders()
+
   const response = await fetch(getApiUrl('/expenses'), {
     method: 'GET',
     headers: {
       Accept: 'application/json',
+      ...authorizationHeaders,
     },
   })
 
@@ -57,10 +93,15 @@ export async function getExpenses(): Promise<Expense[]> {
 export async function createExpense(
   formData: ExpenseFormData,
 ): Promise<Expense> {
+  const authorizationHeaders =
+    await getAuthorizationHeaders()
+
   const response = await fetch(getApiUrl('/expenses'), {
     method: 'POST',
     headers: {
+      Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...authorizationHeaders,
     },
     body: JSON.stringify({
       title: formData.title.trim(),
@@ -75,7 +116,9 @@ export async function createExpense(
   const result = await parseApiResponse(response)
 
   if (!result.expense) {
-    throw new Error('The created expense was not returned by the server.')
+    throw new Error(
+      'The created expense was not returned by the server.',
+    )
   }
 
   return result.expense
@@ -85,12 +128,19 @@ export async function updateExpense(
   expenseId: string,
   formData: ExpenseFormData,
 ): Promise<Expense> {
+  const authorizationHeaders =
+    await getAuthorizationHeaders()
+
   const response = await fetch(
-    getApiUrl(`/expenses/${encodeURIComponent(expenseId)}`),
+    getApiUrl(
+      `/expenses/${encodeURIComponent(expenseId)}`,
+    ),
     {
       method: 'PUT',
       headers: {
+        Accept: 'application/json',
         'Content-Type': 'application/json',
+        ...authorizationHeaders,
       },
       body: JSON.stringify({
         title: formData.title.trim(),
@@ -106,19 +156,29 @@ export async function updateExpense(
   const result = await parseApiResponse(response)
 
   if (!result.expense) {
-    throw new Error('The updated expense was not returned by the server.')
+    throw new Error(
+      'The updated expense was not returned by the server.',
+    )
   }
 
   return result.expense
 }
 
-export async function deleteExpense(expenseId: string): Promise<void> {
+export async function deleteExpense(
+  expenseId: string,
+): Promise<void> {
+  const authorizationHeaders =
+    await getAuthorizationHeaders()
+
   const response = await fetch(
-    getApiUrl(`/expenses/${encodeURIComponent(expenseId)}`),
+    getApiUrl(
+      `/expenses/${encodeURIComponent(expenseId)}`,
+    ),
     {
       method: 'DELETE',
       headers: {
         Accept: 'application/json',
+        ...authorizationHeaders,
       },
     },
   )
