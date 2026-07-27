@@ -6,6 +6,7 @@ import {
   PiggyBank,
   ReceiptText,
   Settings,
+  Target,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -34,6 +35,11 @@ export const navigationItems: NavigationItem[] = [
     label: "Savings",
     path: "/savings",
     icon: PiggyBank,
+  },
+  {
+    label: "Budget",
+    path: "/budget",
+    icon: Target,
   },
   {
     label: "Settings",

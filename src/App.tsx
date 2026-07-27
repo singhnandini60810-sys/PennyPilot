@@ -14,15 +14,22 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import BudgetPage from "./pages/BudgetPage";
 
 function App() {
   return (
     <Routes>
-      {/* ---------- Public Routes ---------- */}
+      {/* Public routes */}
 
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/login"
+        element={<LoginPage />}
+      />
 
-      <Route path="/signup" element={<SignupPage />} />
+      <Route
+        path="/signup"
+        element={<SignupPage />}
+      />
 
       <Route
         path="/verify-email"
@@ -34,7 +41,7 @@ function App() {
         element={<ForgotPasswordPage />}
       />
 
-      {/* ---------- Protected Routes ---------- */}
+      {/* Protected routes */}
 
       <Route
         element={
@@ -64,12 +71,17 @@ function App() {
         />
 
         <Route
+          path="/budget"
+          element={<BudgetPage />}
+        />
+
+        <Route
           path="/settings"
           element={<SettingsPage />}
         />
       </Route>
 
-      {/* ---------- 404 ---------- */}
+      {/* Fallback route */}
 
       <Route
         path="*"
