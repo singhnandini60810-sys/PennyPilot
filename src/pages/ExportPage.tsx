@@ -1,69 +1,89 @@
-import {
-  Download,
-  FileSpreadsheet,
-  FileText,
-  FileType,
-} from "lucide-react";
-
-import { useContext } from "react";
-
+import { useContext, useMemo, useState } from "react";
 import { ExpenseContext } from "../context/ExpenseContext";
 
-import {
-  exportCSV,
-  exportExcel,
-  exportPDF,
-} from "../services/exportService";
+import ExportSummary from "../components/export/ExportSummary";
+import ExportContents from "../components/export/ExportContents";
+import ExportFilters from "../components/export/ExportFilters";
+import ExportFormat from "../components/export/ExportFormat";
+import ReportPreview from "../components/export/ReportPreview";
 
 import "../components/export/export.css";
 
-export default function ExportPage() {
-  const expenseContext =
-    useContext(ExpenseContext);
+export type ExportFormatType = "pdf" | "excel" | "csv";
 
-  if (!expenseContext) return null;
+export interface ExportColumns {
+  title: boolean;
+  category: boolean;
+  amount: boolean;
+  payment: boolean;
+  date: boolean;
+  notes: boolean;
+}
+
+export default function ExportPage() {
+  const expenseContext = useContext(ExpenseContext);
+
+  if (!expenseContext) {
+    throw new Error("ExportPage must be used inside ExpenseProvider.");
+  }
 
   const { expenses } = expenseContext;
 
+  const [format, setFormat] = useState<ExportFormatType>("pdf");
+
+  const [columns, setColumns] = useState<ExportColumns>({
+    title: true,
+    category: true,
+    amount: true,
+    payment: true,
+    date: true,
+    notes: true,
+  });
+
+  const categories = useMemo(
+    () =>
+      [...new Set(expenses.map((expense) => expense.category))].sort(),
+    [expenses]
+  );
+
+  const paymentMethods = useMemo(
+    () =>
+      [...new Set(expenses.map((expense) => expense.payment_method))].sort(),
+    [expenses]
+  );
+
   return (
-    <section className="export-page">
-      <h1>Export Center</h1>
+    <div className="page-container">
+      <div className="export-page">
 
-      <p>
-        Download all your expenses in different
-        formats.
-      </p>
+        <ExportSummary
+          totalRecords={expenses.length}
+          totalCategories={categories.length}
+          format={format}
+        />
 
-      <div className="export-grid">
-        <button
-          onClick={() => exportCSV(expenses)}
-        >
-          <FileText size={26} />
-          Export CSV
-        </button>
+        <ExportContents
+          columns={columns}
+          setColumns={setColumns}
+        />
 
-        <button
-          onClick={() => exportExcel(expenses)}
-        >
-          <FileSpreadsheet size={26} />
-          Export Excel
-        </button>
+        <ExportFilters
+          categories={categories}
+          paymentMethods={paymentMethods}
+        />
 
-        <button
-          onClick={() => exportPDF(expenses)}
-        >
-          <FileType size={26} />
-          Export PDF
-        </button>
+        <ExportFormat
+          format={format}
+          setFormat={setFormat}
+        />
+
+        <ReportPreview
+          expenses={expenses}
+          columns={columns}
+          format={format}
+        />
+
       </div>
-
-      <div className="export-total">
-        <Download />
-
-        <span>
-          {expenses.length} expenses ready to export
-        </span>
-      </div>
-    </section>
+    </div>
   );
 }
