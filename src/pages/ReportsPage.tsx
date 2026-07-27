@@ -1,12 +1,23 @@
 import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
   BarChart3,
   CalendarDays,
+  Check,
+  ChevronDown,
   CircleDollarSign,
   PieChart as PieChartIcon,
   ReceiptText,
   RefreshCw,
   TrendingUp,
+  X,
 } from "lucide-react";
+
 import {
   Bar,
   BarChart,
@@ -27,6 +38,13 @@ import { formatCurrency } from "../utils/formatCurrency";
 
 import "../styles/reports.css";
 
+type DateRangeOption =
+  | "today"
+  | "week"
+  | "month"
+  | "year"
+  | "custom";
+
 interface MonthlyChartItem {
   monthKey: string;
   month: string;
@@ -41,6 +59,33 @@ interface CategoryChartItem {
   percentage: number;
 }
 
+interface DateRange {
+  start: Date;
+  end: Date;
+}
+
+const DATE_RANGE_OPTIONS: Array<{
+  value: Exclude<DateRangeOption, "custom">;
+  label: string;
+}> = [
+  {
+    value: "today",
+    label: "Today",
+  },
+  {
+    value: "week",
+    label: "This Week",
+  },
+  {
+    value: "month",
+    label: "This Month",
+  },
+  {
+    value: "year",
+    label: "This Year",
+  },
+];
+
 const CHART_COLORS: string[] = [
   "#E59D2C",
   "#2E4365",
@@ -52,10 +97,125 @@ const CHART_COLORS: string[] = [
   "#526A90",
 ];
 
+function getLocalDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 function getValidExpenseDate(date: string): Date | null {
   const parsedDate = new Date(`${date}T00:00:00`);
 
-  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+  return Number.isNaN(parsedDate.getTime())
+    ? null
+    : parsedDate;
+}
+
+function getStartOfDay(date: Date): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+}
+
+function getEndOfDay(date: Date): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+}
+
+function getDateRange(option: DateRangeOption): DateRange {
+  const today = new Date();
+
+  if (option === "today") {
+    return {
+      start: getStartOfDay(today),
+      end: getEndOfDay(today),
+    };
+  }
+
+  if (option === "week") {
+    const dayOfWeek = today.getDay();
+
+    const daysSinceMonday =
+      dayOfWeek === 0
+        ? 6
+        : dayOfWeek - 1;
+
+    const start = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - daysSinceMonday,
+    );
+
+    const end = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate() + 6,
+    );
+
+    return {
+      start: getStartOfDay(start),
+      end: getEndOfDay(end),
+    };
+  }
+
+  if (option === "year") {
+    return {
+      start: new Date(
+        today.getFullYear(),
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+      ),
+      end: new Date(
+        today.getFullYear(),
+        11,
+        31,
+        23,
+        59,
+        59,
+        999,
+      ),
+    };
+  }
+
+  return {
+    start: new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1,
+      0,
+      0,
+      0,
+      0,
+    ),
+    end: new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    ),
+  };
 }
 
 function getMonthKey(date: Date): string {
@@ -72,89 +232,211 @@ function getMonthLabel(date: Date): string {
   });
 }
 
-function getLastSixMonths(): Array<{
-  key: string;
-  label: string;
-}> {
-  const months: Array<{
-    key: string;
-    label: string;
-  }> = [];
-
-  const currentDate = new Date();
-
-  for (let monthOffset = 5; monthOffset >= 0; monthOffset -= 1) {
-    const monthDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - monthOffset,
-      1,
-    );
-
-    months.push({
-      key: getMonthKey(monthDate),
-      label: getMonthLabel(monthDate),
-    });
+function formatDateRangeLabel(
+  rangeOption: DateRangeOption,
+  customStartDate: string,
+  customEndDate: string,
+): string {
+  if (rangeOption === "today") {
+    return "Today";
   }
 
-  return months;
+  if (rangeOption === "week") {
+    return "This Week";
+  }
+
+  if (rangeOption === "month") {
+    return "This Month";
+  }
+
+  if (rangeOption === "year") {
+    return "This Year";
+  }
+
+  const startDate = getValidExpenseDate(customStartDate);
+  const endDate = getValidExpenseDate(customEndDate);
+
+  if (!startDate || !endDate) {
+    return "Custom Range";
+  }
+
+  const startLabel = startDate.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+  });
+
+  const endLabel = endDate.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  return `${startLabel} – ${endLabel}`;
 }
 
 export default function ReportsPage() {
-  const { expenses, loading, error, refreshExpenses } = useExpenses();
+  const {
+    expenses,
+    loading,
+    error,
+    refreshExpenses,
+  } = useExpenses();
 
-  const typedExpenses: Expense[] = expenses;
+  const dateFilterRef = useRef<HTMLDivElement | null>(null);
 
-  const totalSpending = typedExpenses.reduce(
-    (total: number, expense: Expense): number =>
-      total + Number(expense.amount),
-    0,
-  );
+  const initialMonthRange = getDateRange("month");
 
-  const averageExpense =
-    typedExpenses.length > 0
-      ? totalSpending / typedExpenses.length
-      : 0;
+  const [selectedRange, setSelectedRange] =
+    useState<DateRangeOption>("month");
 
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  const [isDateMenuOpen, setIsDateMenuOpen] =
+    useState(false);
 
-  const currentMonthSpending = typedExpenses.reduce(
-    (total: number, expense: Expense): number => {
-      const expenseDate = getValidExpenseDate(expense.date);
+  const [isCustomRangeOpen, setIsCustomRangeOpen] =
+    useState(false);
+
+  const [customStartDate, setCustomStartDate] =
+    useState(
+      getLocalDateInputValue(initialMonthRange.start),
+    );
+
+  const [customEndDate, setCustomEndDate] =
+    useState(
+      getLocalDateInputValue(initialMonthRange.end),
+    );
+
+  const [appliedCustomStartDate, setAppliedCustomStartDate] =
+    useState(customStartDate);
+
+  const [appliedCustomEndDate, setAppliedCustomEndDate] =
+    useState(customEndDate);
+
+  const [customDateError, setCustomDateError] =
+    useState("");
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      const clickedElement = event.target as Node;
 
       if (
-        expenseDate &&
-        expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear
+        dateFilterRef.current &&
+        !dateFilterRef.current.contains(clickedElement)
       ) {
-        return total + Number(expense.amount);
+        setIsDateMenuOpen(false);
+        setIsCustomRangeOpen(false);
+        setCustomDateError("");
+      }
+    }
+
+    function handleEscapeKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDateMenuOpen(false);
+        setIsCustomRangeOpen(false);
+        setCustomDateError("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick,
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleEscapeKey,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleEscapeKey,
+      );
+    };
+  }, []);
+
+  const activeDateRange = useMemo<DateRange>(() => {
+    if (selectedRange !== "custom") {
+      return getDateRange(selectedRange);
+    }
+
+    const startDate =
+      getValidExpenseDate(appliedCustomStartDate);
+
+    const endDate =
+      getValidExpenseDate(appliedCustomEndDate);
+
+    if (!startDate || !endDate) {
+      return getDateRange("month");
+    }
+
+    return {
+      start: getStartOfDay(startDate),
+      end: getEndOfDay(endDate),
+    };
+  }, [
+    selectedRange,
+    appliedCustomStartDate,
+    appliedCustomEndDate,
+  ]);
+
+  const filteredExpenses = useMemo<Expense[]>(() => {
+    return expenses.filter((expense) => {
+      const expenseDate =
+        getValidExpenseDate(expense.date);
+
+      if (!expenseDate) {
+        return false;
       }
 
-      return total;
-    },
-    0,
-  );
+      return (
+        expenseDate >= activeDateRange.start &&
+        expenseDate <= activeDateRange.end
+      );
+    });
+  }, [expenses, activeDateRange]);
 
-  const categoryTotals = typedExpenses.reduce<
-    Record<
-      string,
-      {
-        amount: number;
-        transactions: number;
-      }
-    >
-  >(
-    (
-      totals: Record<
+  const totalSpending = useMemo(() => {
+    return filteredExpenses.reduce(
+      (total, expense) =>
+        total + Number(expense.amount),
+      0,
+    );
+  }, [filteredExpenses]);
+
+  const averageExpense =
+    filteredExpenses.length > 0
+      ? totalSpending / filteredExpenses.length
+      : 0;
+
+  const largestExpense = useMemo<Expense | null>(() => {
+    if (filteredExpenses.length === 0) {
+      return null;
+    }
+
+    return filteredExpenses.reduce(
+      (largest, expense) =>
+        Number(expense.amount) >
+        Number(largest.amount)
+          ? expense
+          : largest,
+    );
+  }, [filteredExpenses]);
+
+  const categoryData = useMemo<CategoryChartItem[]>(() => {
+    const categoryTotals = filteredExpenses.reduce<
+      Record<
         string,
         {
           amount: number;
           transactions: number;
         }
-      >,
-      expense: Expense,
-    ) => {
+      >
+    >((totals, expense) => {
       const category = expense.category || "Other";
 
       if (!totals[category]) {
@@ -168,61 +450,52 @@ export default function ReportsPage() {
       totals[category].transactions += 1;
 
       return totals;
-    },
-    {},
-  );
+    }, {});
 
-  const categoryData: CategoryChartItem[] = Object.entries(categoryTotals)
-    .map(
-      ([
-        category,
-        categoryInformation,
-      ]: [
+    return Object.entries(categoryTotals)
+      .map(
+        ([
+          category,
+          categoryInformation,
+        ]): CategoryChartItem => ({
+          category,
+          amount: categoryInformation.amount,
+          transactions:
+            categoryInformation.transactions,
+          percentage:
+            totalSpending > 0
+              ? (
+                  categoryInformation.amount /
+                  totalSpending
+                ) * 100
+              : 0,
+        }),
+      )
+      .sort(
+        (firstCategory, secondCategory) =>
+          secondCategory.amount -
+          firstCategory.amount,
+      );
+  }, [filteredExpenses, totalSpending]);
+
+  const highestCategory =
+    categoryData.length > 0
+      ? categoryData[0]
+      : null;
+
+  const monthlyData = useMemo<MonthlyChartItem[]>(() => {
+    const monthlyTotals = filteredExpenses.reduce<
+      Record<
         string,
         {
           amount: number;
           transactions: number;
-        },
-      ]): CategoryChartItem => ({
-        category,
-        amount: categoryInformation.amount,
-        transactions: categoryInformation.transactions,
-        percentage:
-          totalSpending > 0
-            ? (categoryInformation.amount / totalSpending) * 100
-            : 0,
-      }),
-    )
-    .sort(
-      (
-        firstCategory: CategoryChartItem,
-        secondCategory: CategoryChartItem,
-      ): number => secondCategory.amount - firstCategory.amount,
-    );
-
-  const highestCategory: CategoryChartItem | null =
-    categoryData.length > 0 ? categoryData[0] : null;
-
-  const monthlyTotals = typedExpenses.reduce<
-    Record<
-      string,
-      {
-        amount: number;
-        transactions: number;
-      }
-    >
-  >(
-    (
-      totals: Record<
-        string,
-        {
-          amount: number;
-          transactions: number;
+          date: Date;
         }
-      >,
-      expense: Expense,
-    ) => {
-      const expenseDate = getValidExpenseDate(expense.date);
+      >
+    >((totals, expense) => {
+      const expenseDate =
+        getValidExpenseDate(expense.date);
 
       if (!expenseDate) {
         return totals;
@@ -234,31 +507,102 @@ export default function ReportsPage() {
         totals[monthKey] = {
           amount: 0,
           transactions: 0,
+          date: new Date(
+            expenseDate.getFullYear(),
+            expenseDate.getMonth(),
+            1,
+          ),
         };
       }
 
-      totals[monthKey].amount += Number(expense.amount);
+      totals[monthKey].amount +=
+        Number(expense.amount);
+
       totals[monthKey].transactions += 1;
 
       return totals;
-    },
-    {},
+    }, {});
+
+    return Object.entries(monthlyTotals)
+      .sort(
+        (
+          [, firstMonth],
+          [, secondMonth],
+        ) =>
+          firstMonth.date.getTime() -
+          secondMonth.date.getTime(),
+      )
+      .map(
+        ([
+          monthKey,
+          monthInformation,
+        ]): MonthlyChartItem => ({
+          monthKey,
+          month: getMonthLabel(
+            monthInformation.date,
+          ),
+          amount: monthInformation.amount,
+          transactions:
+            monthInformation.transactions,
+        }),
+      );
+  }, [filteredExpenses]);
+
+  const activeRangeLabel = formatDateRangeLabel(
+    selectedRange,
+    appliedCustomStartDate,
+    appliedCustomEndDate,
   );
 
-  const monthlyData: MonthlyChartItem[] = getLastSixMonths().map(
-    ({
-      key,
-      label,
-    }: {
-      key: string;
-      label: string;
-    }): MonthlyChartItem => ({
-      monthKey: key,
-      month: label,
-      amount: monthlyTotals[key]?.amount ?? 0,
-      transactions: monthlyTotals[key]?.transactions ?? 0,
-    }),
-  );
+  function selectPresetRange(
+    range: Exclude<DateRangeOption, "custom">,
+  ) {
+    setSelectedRange(range);
+    setIsDateMenuOpen(false);
+    setIsCustomRangeOpen(false);
+    setCustomDateError("");
+  }
+
+  function openCustomRange() {
+    setIsCustomRangeOpen(true);
+    setCustomDateError("");
+  }
+
+  function applyCustomRange() {
+    if (!customStartDate || !customEndDate) {
+      setCustomDateError(
+        "Please select both start and end dates.",
+      );
+      return;
+    }
+
+    const startDate =
+      getValidExpenseDate(customStartDate);
+
+    const endDate =
+      getValidExpenseDate(customEndDate);
+
+    if (!startDate || !endDate) {
+      setCustomDateError(
+        "Please select valid dates.",
+      );
+      return;
+    }
+
+    if (startDate > endDate) {
+      setCustomDateError(
+        "The start date cannot be after the end date.",
+      );
+      return;
+    }
+
+    setAppliedCustomStartDate(customStartDate);
+    setAppliedCustomEndDate(customEndDate);
+    setSelectedRange("custom");
+    setCustomDateError("");
+    setIsDateMenuOpen(false);
+    setIsCustomRangeOpen(false);
+  }
 
   if (loading) {
     return (
@@ -309,18 +653,179 @@ export default function ReportsPage() {
           <h1>Reports</h1>
 
           <p>
-            Understand your monthly spending patterns and category
-            distribution.
+            Understand your spending patterns and
+            category distribution for any selected
+            period.
           </p>
         </div>
 
-        <div className="reports-page__period">
-          <CalendarDays size={18} />
-          Last six months
+        <div
+          className="reports-date-filter"
+          ref={dateFilterRef}
+        >
+          <button
+            className={`reports-page__period ${
+              isDateMenuOpen
+                ? "reports-page__period--open"
+                : ""
+            }`}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isDateMenuOpen}
+            onClick={() => {
+              setIsDateMenuOpen(
+                (currentValue) => !currentValue,
+              );
+
+              if (isDateMenuOpen) {
+                setIsCustomRangeOpen(false);
+                setCustomDateError("");
+              }
+            }}
+          >
+            <CalendarDays size={18} />
+
+            <span>{activeRangeLabel}</span>
+
+            <ChevronDown
+              className="reports-page__period-chevron"
+              size={17}
+            />
+          </button>
+
+          {isDateMenuOpen && (
+            <div
+              className="reports-date-menu"
+              role="menu"
+            >
+              <div className="reports-date-menu__heading">
+                <div>
+                  <strong>Select date range</strong>
+                  <span>
+                    All reports update automatically
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Close date filter"
+                  onClick={() => {
+                    setIsDateMenuOpen(false);
+                    setIsCustomRangeOpen(false);
+                    setCustomDateError("");
+                  }}
+                >
+                  <X size={17} />
+                </button>
+              </div>
+
+              <div className="reports-date-menu__options">
+                {DATE_RANGE_OPTIONS.map((option) => (
+                  <button
+                    className={`reports-date-option ${
+                      selectedRange === option.value
+                        ? "reports-date-option--active"
+                        : ""
+                    }`}
+                    type="button"
+                    role="menuitem"
+                    key={option.value}
+                    onClick={() =>
+                      selectPresetRange(option.value)
+                    }
+                  >
+                    <span>{option.label}</span>
+
+                    {selectedRange === option.value && (
+                      <Check size={17} />
+                    )}
+                  </button>
+                ))}
+
+                <button
+                  className={`reports-date-option reports-date-option--custom ${
+                    selectedRange === "custom"
+                      ? "reports-date-option--active"
+                      : ""
+                  }`}
+                  type="button"
+                  role="menuitem"
+                  onClick={openCustomRange}
+                >
+                  <span>Custom Date Range</span>
+
+                  {selectedRange === "custom" ? (
+                    <Check size={17} />
+                  ) : (
+                    <ChevronDown
+                      className={
+                        isCustomRangeOpen
+                          ? "reports-date-option__chevron reports-date-option__chevron--open"
+                          : "reports-date-option__chevron"
+                      }
+                      size={17}
+                    />
+                  )}
+                </button>
+              </div>
+
+              {isCustomRangeOpen && (
+                <div className="reports-custom-range">
+                  <div className="reports-custom-range__fields">
+                    <label>
+                      <span>Start date</span>
+
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(event) => {
+                          setCustomStartDate(
+                            event.target.value,
+                          );
+
+                          setCustomDateError("");
+                        }}
+                      />
+                    </label>
+
+                    <label>
+                      <span>End date</span>
+
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(event) => {
+                          setCustomEndDate(
+                            event.target.value,
+                          );
+
+                          setCustomDateError("");
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {customDateError && (
+                    <p className="reports-custom-range__error">
+                      {customDateError}
+                    </p>
+                  )}
+
+                  <button
+                    className="reports-custom-range__apply"
+                    type="button"
+                    onClick={applyCustomRange}
+                  >
+                    Apply Date Range
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
-      {typedExpenses.length === 0 ? (
+      {expenses.length === 0 ? (
         <div className="reports-empty">
           <div className="reports-empty__icon">
             <BarChart3 size={32} />
@@ -329,8 +834,21 @@ export default function ReportsPage() {
           <h2>No expense data available</h2>
 
           <p>
-            Add expenses from the Expenses page. Your reports and charts
-            will update automatically.
+            Add expenses from the Expenses page. Your
+            reports and charts will update automatically.
+          </p>
+        </div>
+      ) : filteredExpenses.length === 0 ? (
+        <div className="reports-empty">
+          <div className="reports-empty__icon">
+            <CalendarDays size={32} />
+          </div>
+
+          <h2>No expenses in this date range</h2>
+
+          <p>
+            Choose another period from the date filter to
+            view your spending report.
           </p>
         </div>
       ) : (
@@ -343,25 +861,12 @@ export default function ReportsPage() {
 
               <div>
                 <span>Total spending</span>
-                <strong>{formatCurrency(totalSpending)}</strong>
-                <small>Across all recorded expenses</small>
-              </div>
-            </article>
 
-            <article className="report-summary-card">
-              <div className="report-summary-card__icon">
-                <CalendarDays size={23} />
-              </div>
+                <strong>
+                  {formatCurrency(totalSpending)}
+                </strong>
 
-              <div>
-                <span>This month</span>
-                <strong>{formatCurrency(currentMonthSpending)}</strong>
-                <small>
-                  {currentDate.toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </small>
+                <small>{activeRangeLabel}</small>
               </div>
             </article>
 
@@ -371,13 +876,34 @@ export default function ReportsPage() {
               </div>
 
               <div>
-                <span>Average expense</span>
-                <strong>{formatCurrency(averageExpense)}</strong>
+                <span>Transactions</span>
+
+                <strong>
+                  {filteredExpenses.length}
+                </strong>
+
                 <small>
-                  Based on {typedExpenses.length}{" "}
-                  {typedExpenses.length === 1
-                    ? "transaction"
-                    : "transactions"}
+                  {filteredExpenses.length === 1
+                    ? "Recorded expense"
+                    : "Recorded expenses"}
+                </small>
+              </div>
+            </article>
+
+            <article className="report-summary-card">
+              <div className="report-summary-card__icon">
+                <BarChart3 size={23} />
+              </div>
+
+              <div>
+                <span>Average expense</span>
+
+                <strong>
+                  {formatCurrency(averageExpense)}
+                </strong>
+
+                <small>
+                  Average amount per transaction
                 </small>
               </div>
             </article>
@@ -389,13 +915,17 @@ export default function ReportsPage() {
 
               <div>
                 <span>Top category</span>
+
                 <strong>
-                  {highestCategory?.category ?? "No category"}
+                  {highestCategory?.category ??
+                    "No category"}
                 </strong>
 
                 <small>
                   {highestCategory
-                    ? formatCurrency(highestCategory.amount)
+                    ? formatCurrency(
+                        highestCategory.amount,
+                      )
                     : formatCurrency(0)}
                 </small>
               </div>
@@ -407,7 +937,11 @@ export default function ReportsPage() {
               <div className="report-panel__header">
                 <div>
                   <h2>Monthly spending</h2>
-                  <p>Expense totals during the last six months</p>
+
+                  <p>
+                    Spending totals within{" "}
+                    {activeRangeLabel.toLowerCase()}
+                  </p>
                 </div>
 
                 <div className="report-panel__badge">
@@ -417,7 +951,10 @@ export default function ReportsPage() {
               </div>
 
               <div className="report-chart report-chart--bar">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <BarChart
                     data={monthlyData}
                     margin={{
@@ -451,23 +988,33 @@ export default function ReportsPage() {
                         fill: "#6f7785",
                         fontSize: 12,
                       }}
-                      tickFormatter={(value: number): string =>
-                        new Intl.NumberFormat("en-US", {
-                          notation: "compact",
-                          maximumFractionDigits: 1,
-                        }).format(value)
+                      tickFormatter={(
+                        value: number,
+                      ): string =>
+                        new Intl.NumberFormat(
+                          "en-US",
+                          {
+                            notation: "compact",
+                            maximumFractionDigits: 1,
+                          },
+                        ).format(value)
                       }
                     />
 
-                   <Tooltip
-  cursor={{
-    fill: "rgba(229, 157, 44, 0.08)",
-  }}
-  formatter={(value): [string, string] => [
-    formatCurrency(Number(value ?? 0)),
-    "Spending",
-  ]}
-/>
+                    <Tooltip
+                      cursor={{
+                        fill:
+                          "rgba(229, 157, 44, 0.08)",
+                      }}
+                      formatter={(
+                        value,
+                      ): [string, string] => [
+                        formatCurrency(
+                          Number(value ?? 0),
+                        ),
+                        "Spending",
+                      ]}
+                    />
 
                     <Bar
                       dataKey="amount"
@@ -484,7 +1031,11 @@ export default function ReportsPage() {
               <div className="report-panel__header">
                 <div>
                   <h2>Category distribution</h2>
-                  <p>How your total spending is divided</p>
+
+                  <p>
+                    How spending is divided during the
+                    selected period
+                  </p>
                 </div>
 
                 <div className="report-panel__badge">
@@ -494,7 +1045,10 @@ export default function ReportsPage() {
               </div>
 
               <div className="report-chart report-chart--pie">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <PieChart>
                     <Pie
                       data={categoryData}
@@ -507,15 +1061,13 @@ export default function ReportsPage() {
                       paddingAngle={3}
                     >
                       {categoryData.map(
-                        (
-                          category: CategoryChartItem,
-                          index: number,
-                        ) => (
+                        (category, index) => (
                           <Cell
                             key={category.category}
                             fill={
                               CHART_COLORS[
-                                index % CHART_COLORS.length
+                                index %
+                                  CHART_COLORS.length
                               ]
                             }
                           />
@@ -524,10 +1076,14 @@ export default function ReportsPage() {
                     </Pie>
 
                     <Tooltip
-                      formatter={(value): [string, string] => [
-  formatCurrency(Number(value ?? 0)),
-  "Spending",
-]}
+                      formatter={(
+                        value,
+                      ): [string, string] => [
+                        formatCurrency(
+                          Number(value ?? 0),
+                        ),
+                        "Spending",
+                      ]}
                     />
 
                     <Legend
@@ -542,6 +1098,7 @@ export default function ReportsPage() {
                   <strong>
                     {formatCurrency(totalSpending)}
                   </strong>
+
                   <span>Total</span>
                 </div>
               </div>
@@ -552,18 +1109,17 @@ export default function ReportsPage() {
             <div className="report-panel__header">
               <div>
                 <h2>Category breakdown</h2>
+
                 <p>
-                  Ranked by total amount spent in each category
+                  Ranked by total amount spent in each
+                  category
                 </p>
               </div>
             </div>
 
             <div className="category-breakdown">
               {categoryData.map(
-                (
-                  category: CategoryChartItem,
-                  index: number,
-                ) => (
+                (category, index) => (
                   <div
                     className="category-breakdown__row"
                     key={category.category}
@@ -573,14 +1129,17 @@ export default function ReportsPage() {
                       style={{
                         backgroundColor:
                           CHART_COLORS[
-                            index % CHART_COLORS.length
+                            index %
+                              CHART_COLORS.length
                           ],
                       }}
                     />
 
                     <div className="category-breakdown__details">
                       <div className="category-breakdown__heading">
-                        <strong>{category.category}</strong>
+                        <strong>
+                          {category.category}
+                        </strong>
 
                         <span>
                           {category.transactions}{" "}
@@ -599,7 +1158,8 @@ export default function ReportsPage() {
                             )}%`,
                             backgroundColor:
                               CHART_COLORS[
-                                index % CHART_COLORS.length
+                                index %
+                                  CHART_COLORS.length
                               ],
                           }}
                         />
@@ -608,7 +1168,9 @@ export default function ReportsPage() {
 
                     <div className="category-breakdown__value">
                       <strong>
-                        {formatCurrency(category.amount)}
+                        {formatCurrency(
+                          category.amount,
+                        )}
                       </strong>
 
                       <span>
@@ -618,6 +1180,46 @@ export default function ReportsPage() {
                   </div>
                 ),
               )}
+            </div>
+          </article>
+
+          <article className="report-panel report-largest-expense">
+            <div className="report-panel__header">
+              <div>
+                <h2>Largest expense</h2>
+
+                <p>
+                  Your highest individual transaction in
+                  the selected period
+                </p>
+              </div>
+            </div>
+
+            <div className="report-largest-expense__content">
+              <div className="report-largest-expense__icon">
+                <TrendingUp size={24} />
+              </div>
+
+              <div className="report-largest-expense__details">
+                <strong>
+                  {largestExpense?.title ??
+                    "No expense"}
+                </strong>
+
+                <span>
+                  {largestExpense?.category ??
+                    "No category"}
+                  {largestExpense?.payment_method
+                    ? ` • ${largestExpense.payment_method}`
+                    : ""}
+                </span>
+              </div>
+
+              <strong className="report-largest-expense__amount">
+                {formatCurrency(
+                  Number(largestExpense?.amount ?? 0),
+                )}
+              </strong>
             </div>
           </article>
         </>
