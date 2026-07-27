@@ -14,7 +14,7 @@ function Sidebar() {
         <div className="sidebar__brand-content">
           <h1 className="sidebar__brand-name">PennyPilot</h1>
           <p className="sidebar__brand-tagline">
-            Personal Finance Manager
+            Finance Manager
           </p>
         </div>
       </div>
