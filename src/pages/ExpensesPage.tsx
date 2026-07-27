@@ -25,6 +25,58 @@ const EMPTY_FORM: ExpenseFormData = {
   notes: "",
 };
 
+function createSearchableExpenseText(expense: Expense) {
+  const amount = Number(expense.amount);
+  const rawDate = expense.date ?? "";
+
+  let readableDate = "";
+
+  try {
+    readableDate = formatDate(rawDate);
+  } catch {
+    readableDate = rawDate;
+  }
+
+  const dateParts = rawDate.split("-");
+
+  const year = dateParts[0] ?? "";
+  const month = dateParts[1] ?? "";
+  const day = dateParts[2] ?? "";
+
+  const yearMonth =
+    year && month
+      ? `${year}-${month}`
+      : "";
+
+  const dayMonthYear =
+    day && month && year
+      ? `${day}-${month}-${year}`
+      : "";
+
+  const slashDate =
+    day && month && year
+      ? `${day}/${month}/${year}`
+      : "";
+
+  return [
+    expense.title,
+    expense.category,
+    expense.payment_method,
+    expense.notes ?? "",
+    String(amount),
+    amount.toFixed(2),
+    formatCurrency(amount),
+    rawDate,
+    readableDate,
+    year,
+    yearMonth,
+    dayMonthYear,
+    slashDate,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
 export default function ExpensesPage() {
   const {
     expenses,
@@ -50,13 +102,15 @@ export default function ExpensesPage() {
 
     return [...expenses]
       .filter((expense) => {
+        const searchableText = createSearchableExpenseText(expense);
+
         const matchesSearch =
-          expense.title.toLowerCase().includes(normalizedSearch) ||
-          expense.category.toLowerCase().includes(normalizedSearch) ||
-          expense.payment_method.toLowerCase().includes(normalizedSearch);
+          normalizedSearch.length === 0 ||
+          searchableText.includes(normalizedSearch);
 
         const matchesCategory =
-          categoryFilter === "All" || expense.category === categoryFilter;
+          categoryFilter === "All" ||
+          expense.category === categoryFilter;
 
         return matchesSearch && matchesCategory;
       })
@@ -75,10 +129,12 @@ export default function ExpensesPage() {
   function openAddForm() {
     clearError();
     setEditingExpense(null);
+
     setFormData({
       ...EMPTY_FORM,
       date: new Date().toISOString().split("T")[0],
     });
+
     setFormError("");
     setIsFormOpen(true);
   }
@@ -86,6 +142,7 @@ export default function ExpensesPage() {
   function openEditForm(expense: Expense) {
     clearError();
     setEditingExpense(expense);
+
     setFormData({
       title: expense.title,
       amount: String(expense.amount),
@@ -94,6 +151,7 @@ export default function ExpensesPage() {
       payment_method: expense.payment_method,
       notes: expense.notes ?? "",
     });
+
     setFormError("");
     setIsFormOpen(true);
   }
@@ -149,7 +207,7 @@ export default function ExpensesPage() {
 
       closeForm();
     } catch {
-      // Context already stores the API error.
+      // The expense context already stores the API error.
     }
   }
 
@@ -160,7 +218,7 @@ export default function ExpensesPage() {
       await removeExpense(deleteExpense.expense_id);
       setDeleteExpense(null);
     } catch {
-      // Context already stores the API error.
+      // The expense context already stores the API error.
     }
   }
 
@@ -201,14 +259,27 @@ export default function ExpensesPage() {
           <input
             type="search"
             value={search}
-            placeholder="Search expenses..."
+            placeholder="Search title, notes, payment, amount or date..."
+            aria-label="Search expenses"
             onChange={(event) => setSearch(event.target.value)}
           />
+
+          {search && (
+            <button
+              className="expenses-search__clear"
+              type="button"
+              aria-label="Clear expense search"
+              onClick={() => setSearch("")}
+            >
+              <X size={16} />
+            </button>
+          )}
         </label>
 
         <select
           className="expenses-filter"
           value={categoryFilter}
+          aria-label="Filter expenses by category"
           onChange={(event) => setCategoryFilter(event.target.value)}
         >
           <option value="All">All categories</option>
@@ -225,7 +296,11 @@ export default function ExpensesPage() {
         <div className="expenses-error">
           <span>{error}</span>
 
-          <button type="button" onClick={clearError}>
+          <button
+            type="button"
+            aria-label="Dismiss error"
+            onClick={clearError}
+          >
             <X size={17} />
           </button>
         </div>
@@ -251,7 +326,7 @@ export default function ExpensesPage() {
                 : "Try changing your search or category filter."}
             </p>
 
-            {expenses.length === 0 && (
+            {expenses.length === 0 ? (
               <button
                 className="expenses-primary-button"
                 type="button"
@@ -259,6 +334,17 @@ export default function ExpensesPage() {
               >
                 <Plus size={18} />
                 Add expense
+              </button>
+            ) : (
+              <button
+                className="expenses-secondary-button"
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setCategoryFilter("All");
+                }}
+              >
+                Clear filters
               </button>
             )}
           </div>
@@ -283,7 +369,9 @@ export default function ExpensesPage() {
                       <div className="expense-title-cell">
                         <strong>{expense.title}</strong>
 
-                        {expense.notes && <span>{expense.notes}</span>}
+                        {expense.notes && (
+                          <span>{expense.notes}</span>
+                        )}
                       </div>
                     </td>
 
@@ -330,7 +418,10 @@ export default function ExpensesPage() {
       </div>
 
       {isFormOpen && (
-        <div className="expense-modal-backdrop" onMouseDown={closeForm}>
+        <div
+          className="expense-modal-backdrop"
+          onMouseDown={closeForm}
+        >
           <div
             className="expense-modal"
             role="dialog"
@@ -341,7 +432,9 @@ export default function ExpensesPage() {
             <div className="expense-modal__header">
               <div>
                 <h2 id="expense-form-title">
-                  {editingExpense ? "Edit expense" : "Add expense"}
+                  {editingExpense
+                    ? "Edit expense"
+                    : "Add expense"}
                 </h2>
 
                 <p>
@@ -351,14 +444,22 @@ export default function ExpensesPage() {
                 </p>
               </div>
 
-              <button type="button" onClick={closeForm} aria-label="Close form">
+              <button
+                type="button"
+                aria-label="Close form"
+                onClick={closeForm}
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <form className="expense-form" onSubmit={handleSubmit}>
+            <form
+              className="expense-form"
+              onSubmit={handleSubmit}
+            >
               <label>
                 <span>Title</span>
+
                 <input
                   type="text"
                   maxLength={100}
@@ -373,6 +474,7 @@ export default function ExpensesPage() {
               <div className="expense-form__row">
                 <label>
                   <span>Amount</span>
+
                   <input
                     type="number"
                     min="0.01"
@@ -387,6 +489,7 @@ export default function ExpensesPage() {
 
                 <label>
                   <span>Date</span>
+
                   <input
                     type="date"
                     value={formData.date}
@@ -400,6 +503,7 @@ export default function ExpensesPage() {
               <div className="expense-form__row">
                 <label>
                   <span>Category</span>
+
                   <select
                     value={formData.category}
                     onChange={(event) =>
@@ -416,10 +520,14 @@ export default function ExpensesPage() {
 
                 <label>
                   <span>Payment method</span>
+
                   <select
                     value={formData.payment_method}
                     onChange={(event) =>
-                      updateField("payment_method", event.target.value)
+                      updateField(
+                        "payment_method",
+                        event.target.value,
+                      )
                     }
                   >
                     {PAYMENT_METHODS.map((method) => (
@@ -433,6 +541,7 @@ export default function ExpensesPage() {
 
               <label>
                 <span>Notes</span>
+
                 <textarea
                   rows={4}
                   maxLength={500}
@@ -445,7 +554,9 @@ export default function ExpensesPage() {
               </label>
 
               {(formError || error) && (
-                <p className="expense-form__error">{formError || error}</p>
+                <p className="expense-form__error">
+                  {formError || error}
+                </p>
               )}
 
               <div className="expense-form__actions">
@@ -478,23 +589,31 @@ export default function ExpensesPage() {
       {deleteExpense && (
         <div
           className="expense-modal-backdrop"
-          onMouseDown={() => !saving && setDeleteExpense(null)}
+          onMouseDown={() => {
+            if (!saving) {
+              setDeleteExpense(null);
+            }
+          }}
         >
           <div
             className="expense-delete-dialog"
             role="alertdialog"
             aria-modal="true"
+            aria-labelledby="delete-expense-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="expense-delete-dialog__icon">
               <Trash2 size={25} />
             </div>
 
-            <h2>Delete expense?</h2>
+            <h2 id="delete-expense-title">
+              Delete expense?
+            </h2>
 
             <p>
-              This will permanently remove <strong>{deleteExpense.title}</strong>{" "}
-              from DynamoDB.
+              This will permanently remove{" "}
+              <strong>{deleteExpense.title}</strong> from
+              DynamoDB.
             </p>
 
             <div className="expense-form__actions">
@@ -513,7 +632,9 @@ export default function ExpensesPage() {
                 disabled={saving}
                 onClick={() => void confirmDelete()}
               >
-                {saving ? "Deleting..." : "Delete expense"}
+                {saving
+                  ? "Deleting..."
+                  : "Delete expense"}
               </button>
             </div>
           </div>
