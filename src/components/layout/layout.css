@@ -41,6 +41,19 @@
   min-width: 0;
   padding: 30px 32px 44px;
   box-sizing: border-box;
+
+  background-color: #f7f1e7;
+  background-image:
+    linear-gradient(
+      rgba(247, 241, 231, 0.88),
+      rgba(247, 241, 231, 0.88)
+    ),
+    url("/images/app-background.png");
+
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 .app-shell__content > * {
@@ -573,7 +586,7 @@
   color: var(--layout-blue);
   background: transparent;
 
-  border: 1px solid rgba(0, 81, 212, 0.22);
+  border: 1px solid rgba(46, 67, 101, 0.22);
   border-radius: 9px;
 
   font-family: inherit;
@@ -742,7 +755,7 @@
 .savings-page__heading p {
   margin-top: 8px;
 
-  color: #2a62d3;
+  color: #6b7280;
 }
 
 /* =========================================================

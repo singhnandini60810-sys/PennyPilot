@@ -80,7 +80,7 @@
   background-size: cover;
   background-position: center;
 
-  opacity: 0.08;      /* subtle */
+  opacity: 0.4;      
   filter: blur(1px);
 
   pointer-events: none;
