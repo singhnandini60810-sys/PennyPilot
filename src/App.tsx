@@ -5,6 +5,7 @@ import AppLayout from "./components/layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import ReportsPage from "./pages/ReportsPage";
+import SavingsPage from "./pages/SavingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 import { LoginPage } from "./pages/LoginPage";
@@ -13,7 +14,6 @@ import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import SavingsPage from './pages/SavingsPage'
 
 function App() {
   return (
@@ -28,14 +28,7 @@ function App() {
         path="/verify-email"
         element={<VerifyEmailPage />}
       />
-<Route
-  path="/savings"
-  element={
-    <ProtectedRoute>
-      <SavingsPage />
-    </ProtectedRoute>
-  }
-/>
+
       <Route
         path="/forgot-password"
         element={<ForgotPasswordPage />}
@@ -64,6 +57,11 @@ function App() {
           path="/reports"
           element={<ReportsPage />}
         />
+
+        <Route
+          path="/savings"
+          element={<SavingsPage />}
+        />
       </Route>
 
       {/* ---------- 404 ---------- */}
@@ -73,7 +71,6 @@ function App() {
         element={<NotFoundPage />}
       />
     </Routes>
-      
   );
 }
 
