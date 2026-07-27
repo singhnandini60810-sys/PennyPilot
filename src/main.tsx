@@ -6,7 +6,7 @@ import App from "./App";
 import { ExpenseProvider } from "./context/ExpenseContext";
 
 import "./index.css";
-
+import "./styles/auth.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>

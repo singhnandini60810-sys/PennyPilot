@@ -4,9 +4,9 @@ import { useExpenses } from '../../hooks/useExpenses'
 
 function Header() {
   const currentDate = format(new Date(), 'EEEE, dd MMMM yyyy')
-  const { isLoading, error } = useExpenses()
+  const { loading, error } = useExpenses()
 
-  const connectionLabel = isLoading
+  const connectionLabel = loading
     ? 'Connecting'
     : error
       ? 'API unavailable'
