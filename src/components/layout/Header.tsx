@@ -1,7 +1,7 @@
 import { CalendarDays } from 'lucide-react'
 import { format } from 'date-fns'
 import { useExpenses } from '../../hooks/useExpenses'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from "../../hooks/useAuth"
 
 function Header() {
   const currentDate = format(new Date(), 'EEEE, dd MMMM yyyy')
