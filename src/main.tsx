@@ -9,6 +9,7 @@ import { ExpenseProvider } from "./context/ExpenseContext";
 
 import "./index.css";
 import "./styles/auth.css";
+import './styles/savings.css'
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

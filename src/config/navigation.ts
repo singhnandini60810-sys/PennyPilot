@@ -1,6 +1,7 @@
 import {
-  ChartNoAxesCombined,
+  BarChart3,
   LayoutDashboard,
+  PiggyBank,
   ReceiptText,
 } from 'lucide-react'
 
@@ -18,6 +19,11 @@ export const navigationItems = [
   {
     label: 'Reports',
     path: '/reports',
-    icon: ChartNoAxesCombined,
+    icon: BarChart3,
+  },
+  {
+    label: 'Savings',
+    path: '/savings',
+    icon: PiggyBank,
   },
 ]

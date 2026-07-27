@@ -13,6 +13,7 @@ import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import SavingsPage from './pages/SavingsPage'
 
 function App() {
   return (
@@ -27,7 +28,14 @@ function App() {
         path="/verify-email"
         element={<VerifyEmailPage />}
       />
-
+<Route
+  path="/savings"
+  element={
+    <ProtectedRoute>
+      <SavingsPage />
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/forgot-password"
         element={<ForgotPasswordPage />}
@@ -65,6 +73,7 @@ function App() {
         element={<NotFoundPage />}
       />
     </Routes>
+      
   );
 }
 

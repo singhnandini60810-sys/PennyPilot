@@ -1,0 +1,261 @@
+.savings-page {
+  padding: 32px;
+}
+
+.savings-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.savings-page__eyebrow {
+  margin: 0 0 6px;
+  color: #e59d2c;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.savings-page__header h1 {
+  margin: 0;
+  color: #2e4365;
+  font-size: 32px;
+}
+
+.savings-page__header p {
+  margin: 8px 0 0;
+  color: #6b7280;
+}
+
+.savings-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #2e4365;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.savings-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.savings-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid #ebddc5;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.savings-summary-card__icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 14px;
+  background: #f3d58d;
+  color: #8a3b08;
+}
+
+.savings-summary-card span,
+.saving-goal-card span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.savings-summary-card strong {
+  display: block;
+  margin-top: 5px;
+  color: #2e4365;
+  font-size: 21px;
+}
+
+.savings-form {
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid #ebddc5;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.savings-form__heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.savings-form__heading h2 {
+  margin: 0;
+  color: #2e4365;
+}
+
+.savings-form__heading p {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+.savings-form__close {
+  border: 0;
+  background: transparent;
+  color: #8a3b08;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.savings-form__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+}
+
+.savings-form label {
+  color: #2e4365;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.savings-form input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid #d8dce3;
+  border-radius: 10px;
+  outline: none;
+}
+
+.savings-form input:focus {
+  border-color: #2e4365;
+  box-shadow: 0 0 0 3px rgba(46, 67, 101, 0.1);
+}
+
+.savings-form__submit {
+  margin-top: 18px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #e59d2c;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.savings-goals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.saving-goal-card {
+  padding: 24px;
+  border: 1px solid #ebddc5;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.saving-goal-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.saving-goal-card__label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.saving-goal-card h2 {
+  margin: 6px 0 0;
+  color: #2e4365;
+}
+
+.saving-goal-card__delete {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: #fff1f1;
+  color: #b42318;
+  cursor: pointer;
+}
+
+.saving-goal-card__amounts {
+  display: flex;
+  justify-content: space-between;
+  margin: 28px 0 20px;
+}
+
+.saving-goal-card__amounts div:last-child {
+  text-align: right;
+}
+
+.saving-goal-card__amounts strong {
+  display: block;
+  margin-top: 5px;
+  color: #2e4365;
+  font-size: 18px;
+}
+
+.saving-goal-card__progress-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.saving-goal-card__progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f0e8dc;
+}
+
+.saving-goal-card__progress div {
+  height: 100%;
+  border-radius: inherit;
+  background: #e59d2c;
+}
+
+.saving-goal-card__remaining {
+  margin: 12px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.savings-empty {
+  grid-column: 1 / -1;
+  padding: 50px;
+  border: 1px dashed #c9ced7;
+  border-radius: 18px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.savings-empty h2 {
+  color: #2e4365;
+}
+
+@media (max-width: 900px) {
+  .savings-page__header {
+    flex-direction: column;
+  }
+
+  .savings-summary,
+  .savings-goals,
+  .savings-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
